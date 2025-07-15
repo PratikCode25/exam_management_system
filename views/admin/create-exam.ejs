@@ -1,0 +1,293 @@
+<%- include('../layouts/admin/header') %>
+    <!--begin::Body-->
+
+    <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+        <!--begin::App Wrapper-->
+        <div class="app-wrapper">
+            <%- include('../layouts/admin/navbar-sidebar') %>
+                <!--begin::App Main-->
+                <main class="app-main">
+                    <!--begin::App Content Header-->
+                    <div class="app-content-header">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+                            <!--begin::Row-->
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <h3 class="mb-0">Exam Setup</h3>
+                                </div>
+                            </div>
+                            <!--end::Row-->
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content Header-->
+                    <!--begin::App Content-->
+                    <div class="app-content">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+
+                            <div class="container py-1">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h4 class="mb-0">Create Exam</h4>
+                                    </div>
+                                    <div class="card-body">
+
+                                        <div id="messageArea"></div>
+
+                                        <form id="add-exam-form">
+                                            <div class="mb-3">
+                                                <label for="title" class="form-label required">Title</label>
+                                                <input type="text" class="form-control" id="title" name="title"
+                                                    placeholder="Enter test title">
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="description" class="form-label ">Description</label>
+                                                <textarea class="form-control" id="description" name="description"
+                                                    rows="3" placeholder="Enter a short description"></textarea>
+                                            </div>
+
+
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="course" class="form-label required">Course</label>
+                                                    <select class="form-select" id="courseId" name="courseId" required>
+                                                        <option value="" disabled selected>select course</option>
+                                                        <% if(courses.length>0){
+                                                            for(const course of courses){
+                                                            %>
+                                                            <option value="<%=course._id %>">
+                                                                <%=course.name%>
+                                                            </option>
+                                                            <% } } %>
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="course" class="form-label required">Batch</label>
+                                                    <div class="dropdown">
+                                                        <div class="custom-multiselect d-flex justify-content-between align-items-center"
+                                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <span id="batchDropdownLabel"
+                                                                class="custom-placeholder">Select batches</span>
+                                                            <i class="bi bi-chevron-down"></i>
+
+                                                        </div>
+                                                        <ul class="dropdown-menu custom-dropdown-menu"
+                                                            id="batchDropdownList">
+                                                            <% if (batches.length> 0) {
+                                                                for (const batch of batches) { %>
+                                                                <li>
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input batch-checkbox"
+                                                                            type="checkbox" value="<%= batch._id %>"
+                                                                            id="batch_<%= batch._id %>" name="batchId">
+                                                                        <label class="form-check-label"
+                                                                            for="batch_<%= batch._id %>">
+                                                                            <%= batch.name %>
+                                                                        </label>
+                                                                    </div>
+                                                                </li>
+                                                                <% } } %>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="duration" class="form-label required">Duration (in
+                                                        minutes)</label>
+                                                    <input type="number" class="form-control" id="duration"
+                                                        name="duration" placeholder="e.g. 60">
+                                                </div>
+
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="startTime" class="form-label required">Start
+                                                        Time</label>
+                                                    <input type="datetime-local" class="form-control" id="startTime"
+                                                        name="startTime">
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-3 mb-3">
+                                                    <label for="questions" class="form-label required">Number of
+                                                        Questions</label>
+                                                    <input type="number" class="form-control" id="totalQuestions"
+                                                        name="totalQuestions">
+                                                </div>
+
+                                                <div class="col-md-3 mb-3">
+                                                    <label for="marksPerQuestion" class="form-label required">Marks
+                                                        Per Question</label>
+                                                    <input type="number" class="form-control" id="marksPerQuestion"
+                                                        name="marksPerQuestion">
+                                                </div>
+
+                                                <div class="col-md-3 mb-3">
+                                                    <label for="negativeMarks" class="form-label required">Negative
+                                                        Mark Per
+                                                        Wrong Answer</label>
+                                                    <input type="number" step="0.01" class="form-control"
+                                                        id="negativeMarkPerWrongAnswer"
+                                                        name="negativeMarkPerWrongAnswer">
+                                                </div>
+
+                                                <div class="col-md-3 mb-3">
+                                                    <label for="passingPercentage" class="form-label required">Pass
+                                                        Percentage
+                                                    </label>
+                                                    <input type="number" class="form-control" id="passingPercentage"
+                                                        name="passingPercentage">
+                                                </div>
+                                            </div>
+
+                                            <div class="text-start">
+                                                <button type="submit" class="btn btn-primary">Create Exam</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content-->
+                </main>
+                <!--end::App Main-->
+
+                <%- include('../layouts/admin/footer') %>
+
+                    <script>
+                        $(document).ready(function () {
+
+                            $('#courseId').change(function () {
+                                const courseId = $(this).val();
+                                if (courseId) {
+                                    $.ajax({
+                                        url: '/admin/batches/filter',
+                                        type: 'GET',
+                                        data: { courseId },
+                                        success: function (response) {
+                                            if (response.status) {
+                                                console.log(response.data);
+                                                $('#batchDropdownList').empty();
+                                                let html = '';
+                                                if (response.data.length > 0) {
+                                                    for (const batch of response.data) {
+                                                        html += `
+                                                                <li>
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input batch-checkbox"
+                                                                            type="checkbox" value="${batch._id}"
+                                                                            id="batch_${batch._id}" name="batchId">
+                                                                        <label class="form-check-label"
+                                                                            for="batch_${batch._id}">
+                                                                            ${batch.name}
+                                                                        </label>
+                                                                    </div>
+                                                                </li>`
+                                                    }
+                                                } else {
+                                                    html = `<li class='text-muted'>No batch found</li>`
+                                                }
+
+                                                $('#batchDropdownList').html(html);
+
+
+                                            }
+                                        },
+                                        error:function(error){
+                                            if (handleAuthRedirect(error)) return;
+                                        }
+                                    })
+                                }
+                            })
+
+
+
+
+                            $('#add-exam-form').submit(function (e) {
+                                e.preventDefault();
+
+                                const formData = {
+                                    title: $('#title').val().trim(),
+                                    description: $('#description').val().trim(),
+                                    course: $('#courseId').val(),
+                                    batch: $('input[name="batchId"]:checked').map(function () {
+                                        return $(this).val();
+                                    }).get(),
+                                    duration: $('#duration').val(),
+                                    startTime: $('#startTime').val(),
+                                    totalQuestions: $('#totalQuestions').val(),
+                                    marksPerQuestion: $('#marksPerQuestion').val(),
+                                    negativeMarkPerWrongAnswer: $('#negativeMarkPerWrongAnswer').val(),
+                                    passingPercentage: $('#passingPercentage').val()
+                                }
+
+                                if (!formData.title || !formData.course || formData.batch.length === 0 || !formData.duration || !formData.startTime || !formData.totalQuestions || !formData.marksPerQuestion || !formData.negativeMarkPerWrongAnswer || !formData.passingPercentage) {
+                                    showMessage('Please fill all the required fileds', 'danger');
+                                    return;
+                                }
+
+                                // console.log(formData);
+
+                                $.ajax({
+                                    url: '/admin/exams/add',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(formData),
+                                    success: function (response) {
+                                        if (response.status) {
+                                            showMessage(response.message, 'success');
+                                            $('#add-exam-form')[0].reset();
+                                        }
+                                    },
+                                    error: function (error) {
+                                        if (handleAuthRedirect(error)) return;
+                                        showMessage('Failed to save exam setup. Please try again', 'danger');
+                                    }
+
+                                })
+
+                            });
+
+
+                            function showMessage(message, type = 'success') {
+                                $('#messageArea').html(`
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `);
+
+                                setTimeout(() => {
+                                    $('.alert').alert('close');
+                                }, 3000);
+                                
+                            }
+
+                            function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/admin/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+
+                        });
+                    </script>
+
+    </body>
+    <!--end::Body-->
+
+    </html>

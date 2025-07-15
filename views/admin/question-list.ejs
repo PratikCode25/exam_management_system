@@ -1,0 +1,444 @@
+<%- include('../layouts/admin/header') %>
+    <!--begin::Body-->
+
+    <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+        <!--begin::App Wrapper-->
+        <div class="app-wrapper">
+            <%- include('../layouts/admin/navbar-sidebar') %>
+                <!--begin::App Main-->
+                <main class="app-main">
+                    <!--begin::App Content Header-->
+                    <div class="app-content-header">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+                            <!--begin::Row-->
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <h3 class="mb-0">Question List</h3>
+                                </div>
+                            </div>
+                            <!--end::Row-->
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content Header-->
+                    <!--begin::App Content-->
+                    <div class="app-content">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+
+                            <div class="container py-1">
+
+
+                                <div class="d-flex justify-content-end align-items-center mb-4">
+                                    <div class="d-flex gap-2">
+                                        <select id="courseFilter" class="form-select form-select-sm"
+                                            style="min-width: 160px;">
+                                            <option value="">All Courses</option>
+                                            <%if(courses.length>0){
+                                                for(const course of courses){
+                                                %>
+                                                <option value="<%=course._id %>">
+                                                    <%=course.name%>
+                                                </option>
+
+                                                <% } } %>
+                                        </select>
+                                        <select id="examFilter" class="form-select form-select-sm"
+                                            style="min-width: 160px;">
+                                            <option value="">All Exams</option>
+                                            <%if(exams.length>0){
+                                                for(const exam of exams){
+                                                %>
+                                                <option value="<%=exam._id %>">
+                                                    <%=exam.title%>
+                                                </option>
+
+                                                <% } } %>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive shadow rounded p-3">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th>Sl. No</th>
+                                                <th>Course</th>
+                                                <th>Exam</th>
+                                                <th>Question</th>
+                                                <th class="text-center">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="question-body">
+
+                                        </tbody>
+                                    </table>
+
+                                    <nav class="d-flex justify-content-between align-items-center">
+                                        <div id="page-info" class="text-muted ps-2"></div>
+                                        <div class="flex-grow-1 d-flex justify-content-center">
+                                            <div class="pagination-buttons">
+                                                <button id="prev-btn" class="pagination-btn">Previous</button>
+                                                <button id="next-btn" class="pagination-btn">Next</button>
+                                            </div>
+                                        </div>
+                                    </nav>
+
+                                </div>
+
+                                <div class="modal fade" id="editQuestionModal" tabindex="-1"
+                                    aria-labelledby="editQuestionModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+
+                                        <form class="modal-content" id="edit-question-form">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Edit Question</h5>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <div id="messageArea" class="mb-3"></div>
+
+                                                <input type="hidden" id="questionId" name="questionId">
+
+                                                <div class="mb-3">
+                                                    <label for="exam" class="form-label rquired">Select Exam</label>
+                                                    <select class="form-select" id="exam" name="exam">
+                                                        <option value="" disabled selected>Select Exam</option>
+                                                        <%if(exams.length>0){
+                                                            for(const exam of exams){
+                                                            %>
+                                                            <option value="<%=exam._id %>">
+                                                                <%=exam.title%>
+                                                            </option>
+
+                                                            <% } } %>
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label for="questionText" class="form-label">Question</label>
+                                                    <textarea class="form-control" id="questionText" name="questionText"
+                                                        rows="3" placeholder="Enter question"></textarea>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Options</label>
+
+                                                    <div class="mb-2">
+                                                        <label for="optionA" class="form-label">Option A</label>
+                                                        <input type="text" class="form-control" id="optionA"
+                                                            name="optionA" required>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <label for="optionB" class="form-label">Option B</label>
+                                                        <input type="text" class="form-control" id="optionB"
+                                                            name="optionB" required>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <label for="optionC" class="form-label">Option C</label>
+                                                        <input type="text" class="form-control" id="optionC"
+                                                            name="optionC" required>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <label for="optionD" class="form-label">Option D</label>
+                                                        <input type="text" class="form-control" id="optionD"
+                                                            name="optionD" required>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-5">
+                                                    <label for="correctOption" class="form-label">Correct Option</label>
+                                                    <select class="form-select" id="correctOption" name="correctOption"
+                                                        required>
+                                                        <option value="" disabled selected>Select the correct option
+                                                        </option>
+                                                        <option value="A">Option A</option>
+                                                        <option value="B">Option B</option>
+                                                        <option value="C">Option C</option>
+                                                        <option value="D">Option D</option>
+                                                    </select>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-success">Save Changes</button>
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+
+                                        </form>
+
+                                    </div>
+                                </div>
+
+                                <!--end::Container-->
+                            </div>
+                            <!--end::App Content-->
+                </main>
+                <!--end::App Main-->
+
+                <%- include('../layouts/admin/footer') %>
+
+                    <script>
+                        $(document).ready(function () {
+                            let currentPage = 1;
+
+
+                            function fetchQuestions(currentPage) {
+                                $('#question-body').empty();
+                                const courseId = $('#courseFilter').val();
+                                const examId = $('#examFilter').val();
+                                const page = currentPage;
+                                $.ajax({
+                                    url: '/admin/questions/pagination',
+                                    type: 'GET',
+                                    data: {
+                                        courseId,
+                                        examId,
+                                        page
+                                    },
+                                    success: function (response) {
+                                        if (response.status) {
+                                            // console.log(response);
+                                            renderStudents(response.data);
+                                            setupPagination(response.totalPages, response.page);
+
+                                        }
+                                    },
+                                    error:function(error){
+                                         if (handleAuthRedirect(error)) return;
+                                    }
+                                })
+                            }
+
+                            $('#courseFilter, #examFilter').on('change', function () {
+                                currentPage = 1;
+                                fetchQuestions(currentPage);
+                            })
+
+                            $('#prev-btn').on('click', function () {
+                                if (currentPage > 1) {
+                                    currentPage--;
+                                    fetchQuestions(currentPage);
+                                }
+                            });
+
+
+                            $('#next-btn').on('click', function () {
+                                currentPage++;
+                                fetchQuestions(currentPage);
+                            });
+
+
+                            function setupPagination(totalPages, currentPage) {
+                                $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+
+                                $('#prev-btn').prop('disabled', currentPage === 1);
+                                $('#next-btn').prop('disabled', currentPage === totalPages || totalPages === 0);
+                            }
+
+
+                            function renderStudents(data) {
+                                let html = '';
+                                if (data.length > 0) {
+                                    data.forEach((question, index) => {
+                                        html += `
+                                                    <tr class="fade-in" id='row-${question._id}'>
+                                                          <td>${index + 1}</td>
+                                                          <td>${question.exam.course.name}</td>
+                                                          <td>${question.exam.title}</td>
+                                                          <td>${question.questionText}</td>
+                                                          <td class="text-center">
+                                                          <button class="btn btn-sm btn-warning me-1 edit-btn" data-question-id="${question._id}">Edit</button>
+                                                         <button class="btn btn-sm btn-danger delete-btn" data-question-id="${question._id}">Delete</button>
+                                                         </td>
+                                                     </tr>   
+                                                    `
+                                    })
+                                } else {
+                                    html += `
+                                                <tr>
+                                                <td colspan='5' class='text-center'> No Data Found </td>
+                                                </tr>   
+                                                `
+                                }
+
+                                $('#question-body').html(html);
+                                $('.fade-in').hide().fadeIn(500);
+                            }
+
+                            $(document).on('click', '.edit-btn', function () {
+                                const questionId = $(this).data('question-id');
+                                editQuestionModal(questionId);
+                            });
+
+                            function editQuestionModal(id) {
+                                $.ajax({
+                                    url: '/admin/questions/' + id,
+                                    type: 'GET',
+                                    success: function (response) {
+                                        if (response.status) {
+                                            // console.log(response.data);
+                                            const { _id, exam, questionText, options, correctOption } = response.data;
+
+                                            $('#questionId').val(_id);
+                                            $('#exam').val(exam);
+                                            $('#questionText').val(questionText);
+                                            $('#optionA').val(options.find((option) => option.optionId === 'A').text);
+                                            $('#optionB').val(options.find((option) => option.optionId === 'B').text);
+                                            $('#optionC').val(options.find((option) => option.optionId === 'C').text);
+                                            $('#optionD').val(options.find((option) => option.optionId === 'D').text);
+
+                                            $('#correctOption').val(correctOption)
+
+                                            const modal = new bootstrap.Modal(document.getElementById('editQuestionModal'));
+                                            modal.show();
+                                        }
+
+
+                                    },
+                                    error: function (error) {
+                                         if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        alert(errMsg);
+                                    }
+
+                                })
+                            }
+
+
+                            $('#edit-question-form').submit(function (e) {
+                                e.preventDefault();
+
+                                const questionId = $('#questionId').val();
+                                const exam = $('#exam').val();
+                                const questionText = $('#questionText').val().trim();
+                                const optionA = $('#optionA').val().trim();
+                                const optionB = $('#optionB').val().trim();
+                                const optionC = $('#optionC').val().trim();
+                                const optionD = $('#optionD').val().trim();
+                                const correctOption = $('#correctOption').val();
+
+                                if (!exam || !questionText || !optionA || !optionB || !optionC || !optionD || !correctOption) {
+                                    showMessage('Please fill all the required fileds', 'danger');
+                                    return;
+                                }
+                                // console.log($('#questionId').val());
+
+                                $('#questionText').val(questionText);
+                                $('#optionA').val(optionA);
+                                $('#optionB').val(optionB);
+                                $('#optionC').val(optionC);
+                                $('#optionD').val(optionD);
+
+                                const formData = {
+                                    exam,
+                                    questionText,
+                                    options: [
+                                        { optionId: 'A', text: optionA },
+                                        { optionId: 'B', text: optionB },
+                                        { optionId: 'C', text: optionC },
+                                        { optionId: 'D', text: optionD }
+                                    ],
+                                    correctOption
+                                };
+
+                                // console.log(formData);
+                                $.ajax({
+                                    url: `/admin/questions/${questionId}/update`,
+                                    type: 'POST',
+                                    data: formData,
+                                    success: function (response) {
+                                        if (response.status) {
+
+                                            fetchQuestions(currentPage);
+                                            let modalElement = document.getElementById('editQuestionModal');
+                                            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                                            if (modalInstance) {
+                                                modalInstance.hide();
+                                            }
+                                        }
+                                    },
+                                    error: function (error) {
+                                         if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        showMessage(errMsg, 'danger');
+                                    }
+
+                                })
+
+                            })
+
+                            $(document).on('click', '.delete-btn', function () {
+                                const questionId = $(this).data('question-id');
+                                deleteQuestion(questionId);
+                            });
+
+                            function deleteQuestion(id) {
+                                const conf = confirm('Are you sure you want to delete this question?');
+                                if (!conf) {
+                                    return false;
+                                }
+
+                                // console.log(id);
+
+                                $.ajax({
+                                    url: `/admin/questions/${id}/delete`,
+                                    type: 'post',
+                                    success: function (response) {
+                                        if (response.status) {
+                                            $(`#row-${id}`).remove();
+                                        }
+                                    },
+                                    error: function (error) {
+                                         if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        alert(errMsg);
+
+                                    }
+
+                                })
+                            }
+
+
+                            fetchQuestions(currentPage);
+
+
+
+                            function showMessage(message, type = 'success') {
+                                $('#messageArea').html(`
+          <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          `);
+                                setTimeout(() => {
+                                    $('.alert').alert('close');
+                                }, 3000);
+
+
+                            }
+
+                            function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/admin/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+
+                        });
+                    </script>
+
+    </body>
+    <!--end::Body-->
+
+    </html>

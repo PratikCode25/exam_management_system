@@ -1,0 +1,182 @@
+<%- include('./layouts/header') %>
+  <!--begin::Body-->
+  <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <!--begin::App Wrapper-->
+    <div class="app-wrapper">
+     <%- include('./layouts/navbar-sidebar') %>
+      <!--begin::App Main-->
+      <main class="app-main">
+        <!--begin::App Content Header-->
+        <div class="app-content-header">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <!--begin::Row-->
+            <div class="row">
+              <div class="col-sm-6"><h3 class="mb-0">Exams Result</h3></div>
+             
+            </div>
+            <!--end::Row-->
+          </div>
+          <!--end::Container-->
+        </div>
+        <!--end::App Content Header-->
+        <!--begin::App Content-->
+        <div class="app-content">
+          <!--begin::Container-->
+          <div class="container-fluid">
+           <input type="hidden" id="studentId" name="studentId" value="<%=studentId%>">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <select id="filterExam" class="form-select w-auto" >
+                        <option value="" selected disabled>Select exam</option>
+                        <%
+                        if(exams.length>0){
+                            exams.forEach((exam,index)=>{
+                        %>
+                        <option value="<%=exam._id %>" <%= index===0? 'selected':''%>><%=exam.title %></option>
+                        <% 
+                            })
+                    } %>
+                    </select>
+                </div>
+
+                <div class="result-card">
+                  <div class="result-title" id="result-title"></div>
+            
+                  <div class="row g-4">
+                    <div class="col-md-6 col-lg-3">
+                      <div class="stat-box bg-score">
+                        <i class="bi bi-star-fill"></i>
+                        <h5>Score</h5>
+                        <p class="fs-4" id="score"></p>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <div class="stat-box bg-correct">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <h5>Correct</h5>
+                        <p class="fs-4" id="correct-ans"></p>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <div class="stat-box bg-wrong">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <h5>Wrong</h5>
+                        <p class="fs-4" id="wrong-ans"></p>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <div class="stat-box bg-unanswered">
+                        <i class="bi bi-question-circle-fill"></i>
+                        <h5>Unattempted</h5>
+                        <p class="fs-4" id="un-ans"></p>
+                      </div>
+                    </div>
+                  </div>
+            
+                  <div class="text-center mt-5">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#answersModal">
+                     View Detailed Answers
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal fade" id="answersModal" tabindex="-1" aria-labelledby="answersModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="answersModalLabel">Detailed MCQ Review</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="qa-modal">
+                      
+              
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+          </div>
+          <!--end::Container-->
+        </div>
+        <!--end::App Content-->
+      </main>
+      <!--end::App Main-->
+      
+      <%- include('./layouts/footer') %>
+    
+
+      <script>
+        $(document).ready(function(){
+        function fetchExamResult(){
+            const filterExam=$('#filterExam').val();
+            const studentId=$('#studentId').val();
+            console.log(filterExam);
+            $.ajax({
+                url: `/student/exam-result/${studentId}/${filterExam}`,
+                type: 'GET',
+                success: function (response) {
+                  if (response.status) {
+                    // console.log(response.data);
+                    const {
+                    examTitle,
+                    totalMarks,
+                    totalScore,
+                    noOfCorrectAns,
+                    noOfIncorrectAns,
+                    noOfUnansweredQuestion,
+                    questionAnswer}=response.data;
+
+                    $('#result-title').text(examTitle);
+                    $('#score').text(`${totalScore}/${totalMarks}`);
+                    $('#correct-ans').text(noOfCorrectAns);
+                    $('#wrong-ans').text(noOfIncorrectAns);
+                    $('#un-ans').text(noOfUnansweredQuestion);
+
+                    let html='';
+                    questionAnswer.forEach((val)=>{
+                      html+=`
+                      <div class="question-block">
+                        <p class="question">${val.qno}. ${val.questionText}</p>
+                        <span class="tag your-answer">Your Answer: ${val.yourAns}</span><br>
+                        <span class="tag correct-answer">Correct Answer: ${val. correctAns}</span>
+                      </div>
+                      `
+                    })
+
+                    $('#qa-modal').html(html);
+
+                  }
+                },
+                error:function(error){
+                  if (handleAuthRedirect(error)) return;
+                }
+              })
+        }
+
+        $('#filterExam').on('change',function(){
+          fetchExamResult();
+        })
+
+        fetchExamResult();
+
+        function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/student/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+
+      });
+        
+    </script>
+  
+  </body>
+  <!--end::Body-->
+</html>

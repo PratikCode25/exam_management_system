@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Exam Page</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+   body {
+      background: linear-gradient(135deg, #e0f7fa, #ffffff);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .question-box {
+      min-height: 75vh;
+      padding: 25px;
+      border-radius: 15px;
+      background-color: #ffffff;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      position: relative;
+      transition: box-shadow 0.3s;
+    }
+
+    .question-box:hover {
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    }
+
+    .timer {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background-color: #fff3cd;
+      color: #856404;
+      padding: 8px 20px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: bold;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .question-nav-box {
+      max-height: 75vh;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .question-number {
+      width: 50px;
+      height: 50px;
+      margin: 10px auto;
+      border: 2px solid #007bff;
+      border-radius: 50%;
+      font-weight: bold;
+      background-color: #f8f9fa;
+      color: #007bff;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .question-number:hover {
+      background-color: #007bff;
+      color: #fff;
+    }
+
+    .question-number.selected {
+      background-color: #2ecc71 ;
+      color: white;
+      box-shadow: 0 0 10px rgba(088, 214, 141);
+    }
+
+    .question-number.disabled {
+      background-color: #e9ecef;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .question-text {
+      font-weight: 600;
+      font-size: 1.35rem;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .form-check-input {
+      margin-top: 0.4rem;
+    }
+
+    .form-check-label {
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    .form-check:hover .form-check-label {
+      color: #007bff;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 35px;
+    }
+
+    .btn {
+      padding: 10px 22px;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-group-right {
+      display: flex;
+      gap: 12px;
+    }
+
+    h5 {
+      color: #007bff;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+            <div class="container-fluid">
+
+              <div class="container mt-5">
+                <div class="row g-4">
+                  <!-- Left Column: Question Box -->
+                  <div class="col-md-8">
+                    <div class="question-box  p-4 border rounded shadow-sm bg-white">
+
+                      <div class="exam-title text-center mb-3">
+                        <h3 id="examTitle" class="fw-bold"><%=examData.title%></h3>
+                      </div>
+
+                      <div class="timer" id="timer"></div>
+
+                      <input type="hidden" id="studentId" name="studentId" value="<%=studentId %>">
+                      <input type="hidden" id="examId" name="examId" value="<%=examData._id %>">
+                      <input type="hidden" id="startTime" name="startTime" value="<%=examData.startTime %>">
+                      <input type="hidden" id="duration" name="duration" value="<%=examData.duration %>">
+                      <form id="question-container-form">
+
+                      </form>
+
+                      <div class="button-row">
+                        <!-- Save on left -->
+                        <button id="save-btn" class="btn btn-success">Save</button>
+
+                        <!-- Prev/Next on right -->
+                        <div class="btn-group-right">
+                          <button id="prev-btn" class="btn btn-outline-secondary" disabled>Previous</button>
+                          <button id="next-btn" class="btn btn-primary">Next</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column: Question Numbers -->
+                  <div class="col-md-4">
+                    <div class="question-nav-box">
+                      <h5 class="text-center mb-3">Question Numbers</h5>
+                      <div id="question-numbers" class="container">
+                        <!-- Question numbers will be inserted in rows of 3 -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+
+
+            </div>
+        
+          <script>
+            let allQuestions = [];
+            let currentIndex = 0;
+            let selectedAnswers = [];
+            let countInterval;
+
+            function fetchQuestions() {
+              const examId = $('#examId').val();
+              $.ajax({
+                url: '/student/question/exam/' + examId,
+                type: 'GET',
+                success: function (response) {
+                  if (response.status) {
+                    // console.log(response.data);
+                    allQuestions = response.data;
+                    fetchUserSubmission();
+
+                  }
+                }
+              })
+            }
+
+
+            function fetchUserSubmission() {
+              const examId = $('#examId').val();
+              const studentId = $('#studentId').val();
+
+              $.ajax({
+                url: `/student/submission/${studentId}/${examId}`,
+                method: 'GET',
+                success: function (res) {
+                  if (res.status && res.data && res.data.submit) {
+                    selectedAnswers = res.data.submit;
+                  }
+                  renderQuestion(currentIndex);
+                  renderQuestionNumbers();
+                  // updateNavButtons();
+                },
+                error:function(error){
+                  if (handleAuthRedirect(error)) return;
+                }
+              });
+            }
+
+
+            function renderQuestion(index) {
+              $('#question-container-form').empty();
+              console.log(allQuestions);
+              console.log(selectedAnswers);
+
+              const ques = allQuestions[index];
+
+              const selected = selectedAnswers.find((ans) => ans.questionId === ques._id);
+              const options = ques.options.map((opt) => {
+                const isChecked = selected && selected.answer === opt.optionId ? 'checked' : '';
+                return `
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="option" value="${opt.optionId}" ${isChecked}>
+          <label class="form-check-label">${opt.optionId}. ${opt.text}</label>
+        </div>`;
+              }).join('');
+
+              $('#question-container-form').html(`<div class="mb-3 fw-bold">${ques.questionText}</div>${options}`);
+              $('#save-btn').prop('disabled', !selected);
+            }
+
+            $(document).on('change', 'input[name="option"]', function () {
+              $('#save-btn').prop('disabled', false);
+            });
+
+            function renderQuestionNumbers() {
+              $('#question-numbers').empty();
+
+              for (let i = 0; i < allQuestions.length; i += 3) {
+                const row = $('<div class="row mb-2 justify-content-center flex-wrap gx-2 gy-3"></div>');
+                for (let j = i; j < i + 3 && j < allQuestions.length; j++) {
+                  const questionId = allQuestions[j]._id;
+                  const isSelected = selectedAnswers.some((ans) => ans.questionId === questionId);
+                  // const selectedClass = isSelected ? 'selected' : '';
+
+                  const btn = $(`
+          <div class="col-4 d-flex justify-content-center">
+            <div class="question-number ${isSelected ? 'selected' : ''}" data-index="${j}">${j + 1}</div>
+          </div>`);
+                  row.append(btn);
+                }
+                $('#question-numbers').append(row);
+              }
+            }
+
+            $(document).on('click', '.question-number', function () {
+              currentIndex = parseInt($(this).data('index'));
+              renderQuestion(currentIndex);
+              updateNavButtons();
+            });
+
+            $('#next-btn').click(function () {
+              if (currentIndex < allQuestions.length - 1) {
+                currentIndex++;
+                renderQuestion(currentIndex);
+                updateNavButtons();
+              }
+            });
+
+            $('#prev-btn').click(function () {
+              if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion(currentIndex);
+                updateNavButtons();
+              }
+            });
+
+            function updateNavButtons() {
+              $('#prev-btn').prop('disabled', currentIndex === 0);
+              $('#next-btn').prop('disabled', currentIndex === allQuestions.length - 1);
+            }
+
+
+            $('#save-btn').click(function () {
+              const selectedOption = $('input[name="option"]:checked').val();
+              if (!selectedOption) {
+                alert("Select an option to save.");
+                return false;
+              }
+
+              const curQuestion = allQuestions[currentIndex];
+              const isCorrect = curQuestion.correctOption === selectedOption;
+
+              const formData = {
+                questionId: curQuestion._id,
+                answer: selectedOption,
+                isCorrect,
+                examId: $('#examId').val(),
+                studentId: $('#studentId').val()
+              };
+
+              const answerObj={
+                questionId: curQuestion._id,
+                answer: selectedOption,
+                isCorrect
+              }
+
+              $.ajax({
+                url: '/student/submit/answer',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (response) {
+                  const existingIndex = selectedAnswers.findIndex((ans) => ans.questionId === curQuestion._id);
+                  if (existingIndex !== -1) {
+                    selectedAnswers[existingIndex] = answerObj;
+                  } else {
+                    selectedAnswers.push(answerObj);
+                  }
+                  renderQuestionNumbers();
+                  $('#save-btn').prop('disabled', true);
+                },
+                error:function(error){
+                  if (handleAuthRedirect(error)) return;
+                }
+              });
+
+
+            })
+
+
+            fetchQuestions();
+
+            function setTimer() {
+              const startTime = new Date($('#startTime').val()).getTime();
+              const duration = $('#duration').val() * 60 * 1000;
+              const endTime = startTime + duration;
+              countInterval = setInterval(function () {
+                const now = new Date().getTime();
+                let timeLeft = endTime - now;
+                // console.log(timeLeft);
+                if (timeLeft <= 0) {
+                  clearInterval(countInterval);
+                  $('#timer').text('Time is up');
+                  window.location.href='/student/dashboard'
+                }
+
+                const minutes = Math.floor(timeLeft / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+              // console.log(minutes, seconds);
+
+              $('#timer').text(`Time Left: ${minutes}:${seconds.toString().padStart(2, '0')}`);
+
+
+            }, 1000);
+            }
+
+            setTimer();
+
+            function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/student/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+
+          </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+  
+
+  </html>

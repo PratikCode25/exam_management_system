@@ -1,0 +1,214 @@
+<%- include('../layouts/admin/header') %>
+    <!--begin::Body-->
+
+    <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+        <!--begin::App Wrapper-->
+        <div class="app-wrapper">
+            <%- include('../layouts/admin/navbar-sidebar') %>
+                <!--begin::App Main-->
+                <main class="app-main">
+                    <!--begin::App Content Header-->
+                    <div class="app-content-header">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+                            <!--begin::Row-->
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <h3 class="mb-0">Add Student</h3>
+                                </div>
+                            </div>
+                            <!--end::Row-->
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content Header-->
+                    <!--begin::App Content-->
+                    <div class="app-content">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+
+                            <div class="container">
+                                <div class="card form-card shadow-sm">
+                                    <div class="card-header">
+                                        <h4 class="mb-0">Register</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="messageArea"></div>
+                                        <form id="add-student-form">
+
+                                            <div class="mb-3">
+                                                <label for="name" class="form-label required">Name</label>
+                                                <input type="text" class="form-control" id="name" name="name">
+                                            </div>
+
+
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label required">Email address</label>
+                                                <input type="email" class="form-control" id="email" name="email">
+                                            </div>
+
+
+                                            <div class="mb-3">
+                                                <label for="password" class="form-label required">Password</label>
+                                                <input type="password" class="form-control" id="password"
+                                                    name="password">
+                                            </div>
+
+
+                                            <div class="mb-3">
+                                                <label for="phoneNumber" class="form-label">Phone Number</label>
+                                                <input type="tel" class="form-control" id="phoneNumber"
+                                                    name="phoneNumber">
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="course" class="form-label required">Course</label>
+                                                <select class="form-select" id="courseId" name="courseId">
+                                                    <option selected disabled value="">Select Course</option>
+                                                    <% if(courses.length>0){
+                                                        courses.forEach((course) => {
+                                                        %>
+                                                        <option value="<%=course._id%>">
+                                                            <%=course.name %>
+                                                        </option>
+                                                        <% }) } %>
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="batch" class="form-label required">Batch</label>
+                                                <select class="form-select" id="batchId" name="batchId">
+                                                    <option selected disabled value="">Select Batch</option>
+
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="image" class="form-label">Upload Image</label>
+                                                <input class="form-control" type="file" id="image" name="image">
+                                            </div>
+
+                                            <div class="text-start">
+                                                <button type="submit" class="btn btn-primary">Save and Send
+                                                    Mail</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+
+
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content-->
+                </main>
+                <!--end::App Main-->
+
+                <%- include('../layouts/admin/footer') %>
+
+                    <script>
+
+                        $(document).ready(function () {
+                            $('#add-student-form').submit(function (e) {
+                                e.preventDefault();
+
+                                let name = $('#name').val().trim();
+                                let email = $('#email').val().trim();
+                                let password = $('#password').val().trim();
+                                let phone = $('#phoneNumber').val().trim();
+                                let courseId = $('#courseId').val();
+                                let batchId = $('#batchId').val();
+
+                                if (!name || !email || !password || !batchId || !courseId) {
+                                    showMessage('Please fill all required fields', 'success');
+                                    return;
+                                }
+
+                                $('#name').val(name);
+                                $('#email').val(email);
+                                $('#password').val(password);
+                                $('#phoneNumber').val(phone);
+
+                                let formData = new FormData(this);
+
+                                $.ajax({
+                                    url: '/admin/students/add',
+                                    type: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function (response) {
+                                        if (response.status) {
+                                            showMessage(response.message, 'success');
+                                            $('#add-student-form')[0].reset();
+                                        }
+                                    },
+                                    error: function (error) {
+                                        if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        showMessage(errMsg, 'danger');
+                                    }
+
+                                })
+
+                            });
+
+                            $('#courseId').on('change', function () {
+                                $.ajax({
+                                    url: '/admin/batches/filter',
+                                    type: 'GET',
+                                    data: { courseId: $('#courseId').val() },
+                                    success: function (response) {
+                                        if (response.status) {
+                                            // console.log(response.data);
+                                            let html = ' <option value="" disabled>Select Exam</option>'
+                                            if (response.data.length > 0) {
+                                                response.data.forEach((batch) => {
+                                                    html += `<option value="${batch._id}">${batch.name}</option>`;
+                                                })
+                                            }
+                                            $('#batchId').html(html);
+                                        }
+                                    },
+                                    error: function (error) {
+                                        if (handleAuthRedirect(error)) return;
+                                    }
+                                })
+                            })
+
+
+                            function showMessage(message, type = 'success') {
+                                $('#messageArea').html(`
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `);
+                                setTimeout(() => {
+                                    $('.alert').alert('close');
+                                }, 3000);
+                            }
+
+                            function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/admin/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+
+                        });
+                    </script>
+
+
+                    </script>
+
+    </body>
+    <!--end::Body-->
+
+    </html>

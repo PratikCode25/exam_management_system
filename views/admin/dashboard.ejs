@@ -1,0 +1,304 @@
+<%- include('../layouts/admin/header') %>
+  <!--begin::Body-->
+
+  <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <!--begin::App Wrapper-->
+    <div class="app-wrapper">
+      <%- include('../layouts/admin/navbar-sidebar') %>
+        <!--begin::App Main-->
+        <main class="app-main">
+          <!--begin::App Content Header-->
+          <div class="app-content-header">
+            <!--begin::Container-->
+            <div class="container-fluid">
+              <!--begin::Row-->
+              <div class="row">
+                <div class="col-sm-6">
+                  <h3 class="mb-0">Dashboard</h3>
+                </div>
+                <!-- <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                  <li class="breadcrumb-item"><a href="#">Home</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                </ol>
+              </div> -->
+              </div>
+              <!--end::Row-->
+            </div>
+            <!--end::Container-->
+          </div>
+          <!--end::App Content Header-->
+          <!--begin::App Content-->
+          <div class="app-content">
+            <!--begin::Container-->
+            <div class="container-fluid">
+
+              <div class="conatiner">
+                <div class="row">
+                  <div class="col-md-2">
+                    <div class="card-stats">
+                      <div class="icon"><i class="bi bi-book-fill"></i></div>
+                      <div class="title">Total Courses</div>
+                      <div class="value" id="total-courses">0</div>
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="card-stats">
+                      <div class="icon"><i class="bi bi-collection-fill"></i></div>
+                      <div class="title">Total Batches</div>
+                      <div class="value" id="total-batches">0</div>
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="card-stats">
+                      <div class="icon"><i class="bi bi-people-fill"></i></div>
+                      <div class="title">Total Students</div>
+                      <div class="value" id="total-students">0</div>
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="card-stats">
+                      <div class="icon"><i class="bi bi-mortarboard-fill"></i></div>
+                      <div class="title">Total Exams</div>
+                      <div class="value" id="total-exams">0</div>
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="card-stats">
+                      <div class="icon"><i class="bi bi-stopwatch-fill"></i></div>
+                      <div class="title">Ongoing Exams</div>
+                      <div class="value" id="ongoing-exams">0</div>
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="card-stats">
+                      <div class="icon"><i class="bi bi-calendar-event-fill"></i></i></div>
+                      <div class="title">Pending Exams</div>
+                      <div class="value" id="pending-exams">0</div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="row mt-3">
+                  <div class="col-md-6">
+                    <div class="card shadow-sm">
+                      <div class="card-header bg-white">
+                        <h5>Average Course Performance</h5>
+                      </div>
+                      <div class="card-body d-flex justify-content-center align-items-center">
+                        <canvas id="avgScorePerCourseChart" class="chart-height"></canvas>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="card shadow-sm">
+                      <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                            <h5>Pass/Fail Per Course (Absent is also failed)</h5>
+                          </div>
+                          <div>
+                            <select id="courseFilter" class="form-select form-select-sm">
+                              <option disabled value="">All Courses</option>
+                              <%if(courses.length>0){
+                                for(const course of courses){
+                                %>
+                                <option value="<%=course._id %>">
+                                  <%=course.name%>
+                                </option>
+
+                                <% } } %>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="card-body d-flex justify-content-center align-items-center">
+                        <canvas id="passFailChart" class="chart-height"></canvas>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+
+
+
+
+            </div>
+            <!--end::Container-->
+          </div>
+          <!--end::App Content-->
+        </main>
+        <!--end::App Main-->
+
+        <%- include('../layouts/admin/footer') %>
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+            $(document).ready(function () {
+
+              function fetchCardData() {
+                $.ajax({
+                  url: '/admin/dashboard/cards',
+                  type: 'GET',
+                  success: function (response) {
+                    // console.log(response.data);
+                    if (response.status) {
+                      $('#total-courses').text(response.data.courseCount);
+                      $('#total-batches').text(response.data.batchCount);
+                      $('#total-exams').text(response.data.examCount);
+                      $('#total-students').text(response.data.studentCount);
+                      $('#ongoing-exams').text(response.data.ongoingExamsCount);
+                      $('#pending-exams').text(response.data.pendingExamsCount);
+
+                    }
+                  },
+                  error:function(error){
+                    if (handleAuthRedirect(error)) return;
+                  }
+                })
+
+              }
+              fetchCardData();
+
+              function fetchAvgScorePerCourse() {
+                $.ajax({
+                  url: '/admin/dashboard/charts/average-score-per-course',
+                  type: 'GET',
+                  success: function (response) {
+                    console.log(response.data); 
+                    if (response.status) {
+                      if (response.data.length > 0) {
+                        const courseNames = response.data.map(item => item.courseName);
+                        const avgPercentage = response.data.map(item => item.courseAvgPercentage);
+
+                        const ctx = document.getElementById('avgScorePerCourseChart').getContext('2d');
+                        new Chart(ctx, {
+                          type: 'bar',
+                          data: {
+                            labels: courseNames,
+                            datasets: [{
+                              label: 'Average Score (%)',
+                              data: avgPercentage,
+                              backgroundColor: [
+                                '#42a5f5',
+                                '#66bb6a',
+                                '#fbc02d',
+                                '#ff7043',
+                                '#9575cd',
+                                '#f44336'
+                              ],
+                              borderColor: '#333',
+                              borderWidth: 1
+                            }]
+                          },
+                          options: {
+                            responsive: true,
+                            scales: {
+                              y: {
+                                beginAtZero: true,
+                                max: 100
+                              }
+                            },
+                            plugins: {
+                              title: {
+                                display: true,
+                                text: 'Average Percentage Score Per Course',
+                              },
+                              legend: {
+                                display: false
+                              }
+                            }
+                          }
+                        });
+
+                      }
+                    }
+                  },
+                  error:function(error){
+                    if (handleAuthRedirect(error)) return;
+                  }
+                })
+
+              }
+
+              fetchAvgScorePerCourse();
+
+              $('#courseFilter').on('change', function () {
+                fetchPassFailByCourse();
+              })
+
+              fetchPassFailByCourse();
+
+              function fetchPassFailByCourse() {
+                const courseId = $('#courseFilter').val();
+                if (!courseId) {
+                  return;
+                }
+
+                $.ajax({
+                  url: '/admin/dashboard/charts/pass-fail-per-course/' + courseId,
+                  type: 'GET',
+                  success: function (response) {
+                    // console.log(response);
+                    if (response.status) {
+                      // console.log(response.data);
+
+                      const ctx = document.getElementById('passFailChart').getContext('2d');
+                      if (window.chartInstance) {
+                        window.chartInstance.destroy();
+                      }
+
+                      window.chartInstance = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                          labels: ['Pass', 'Fail'],
+                          datasets: [{
+                            data: [response.data.totalPass, response.data.totalFail],
+                            backgroundColor: ['#4CAF50', '#F44336'],
+                            borderWidth: 1
+                          }]
+                        },
+                        options: {
+                          responsive: true,
+                          plugins: {
+                            title: {
+                              display: true,
+                              text: `Pass/Fail Rate for ${response.data.course}`,
+                            },
+                            legend: {
+                              position: 'bottom'
+                            }
+                          }
+                        }
+                      });
+
+
+                    }
+
+                  },
+                  error:function(error){
+                    if (handleAuthRedirect(error)) return;
+                  }
+                })
+              }
+
+              function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/admin/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+
+            })
+          </script>
+
+  </body>
+  <!--end::Body-->
+
+  </html>

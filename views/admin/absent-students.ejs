@@ -1,0 +1,264 @@
+<%- include('../layouts/admin/header') %>
+  <!--begin::Body-->
+
+  <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <!--begin::App Wrapper-->
+    <div class="app-wrapper">
+      <%- include('../layouts/admin/navbar-sidebar') %>
+        <!--begin::App Main-->
+        <main class="app-main">
+          <!--begin::App Content Header-->
+          <div class="app-content-header">
+            <!--begin::Container-->
+            <div class="container-fluid">
+              <!--begin::Row-->
+              <div class="row">
+                <div class="col-sm-6">
+                  <h3 class="mb-0">Absent Students</h3>
+                </div>
+                <!-- <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                  <li class="breadcrumb-item"><a href="#">Home</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                </ol>
+              </div> -->
+              </div>
+              <!--end::Row-->
+            </div>
+            <!--end::Container-->
+          </div>
+          <!--end::App Content Header-->
+          <!--begin::App Content-->
+          <div class="app-content">
+            <!--begin::Container-->
+            <div class="container-fluid">
+
+              <div class="container py-1">
+
+                <!-- Filter Form -->
+                <form id="absent-filter-form">
+                  <div class="row mb-4">
+                    <div class="col-md-3">
+                      <select name="courseId" id="courseId" class="form-select">
+                        <option value="" disable>Select Course</option>
+                        <%if(courses){ courses.forEach((course)=>{
+                          %>
+                          <option value="<%=course._id%>">
+                            <%=course.name %>
+                          </option>
+                          <% }) } %>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <select name="batchId" id="batchId" class="form-select" required>
+                        <option value="">Select Batch</option>
+                        <%if(batches){ batches.forEach((batch)=>{
+                          %>
+                          <option value="<%=batch._id%>">
+                            <%=batch.name %>
+                          </option>
+                          <% }) } %>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <select name="examId" id="examId" class="form-select" required>
+                        <option value="">Select Exam</option>
+                        <%if(exams){ exams.forEach((exam)=>{
+                          %>
+                          <option value="<%=exam._id%>">
+                            <%=exam.title %>
+                          </option>
+                          <% }) } %>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    </div>
+                  </div>
+                </form>
+
+
+                <div class="row mb-4">
+                  <div class="col-md-3">
+                    <div class="stats-card">
+                      <h6>Total Absent Students</h6>
+                      <h4 id="tot-abs-student"></h4>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Rankings Table -->
+
+                <div class="table-responsive shadow rounded">
+                  <table class="table table-hover align-middle">
+                    <thead class="table-primary">
+                      <tr>
+                        <th>Sl. No</th>
+                        <th>Student Name</th>
+                        <th>Email</th>
+                        <th>Phone No.</th>
+                        <th>Course</th>
+                        <th>Batch</th>
+                      </tr>
+                    </thead>
+                    <tbody id="absent-student-body">
+
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+
+            </div>
+            <!--end::Container-->
+          </div>
+          <!--end::App Content-->
+        </main>
+        <!--end::App Main-->
+
+        <%- include('../layouts/admin/footer') %>
+
+          <script>
+
+            $(document).ready(function () {
+
+              let allStudentSQusAns = [];
+
+              $('#courseId').change(function () {
+                const courseId = $(this).val();
+                if (!courseId) {
+                  return false;
+                }
+                $.ajax({
+                  url: '/admin/batches/filter',
+                  type: 'GET',
+                  data: { courseId },
+                  success: function (response) {
+                    if (response.status) {
+                      let html = ' <option value="" disable>Select Batch</option>'
+
+                      if (response.data.length > 0) {
+                        response.data.forEach((batch) => {
+                          html += `<option value="${batch._id}">${batch.name}</option>`;
+                        })
+
+                      }
+                      $('#batchId').html(html);
+
+                    }
+                  },
+                  error:function(error){
+                    if (handleAuthRedirect(error)) return;
+                  }
+                })
+
+              })
+
+              $('#batchId').change(function () {
+                const batchId = $(this).val();
+                if (!batchId) {
+                  return false;
+                }
+
+                // console.log(batchId);
+
+                $.ajax({
+                  url: '/admin/exams/filter',
+                  type: 'GET',
+                  data: { batchId },
+                  success: function (response) {
+                    // console.log(response);
+                    if (response.status) {
+                      const now = new Date();
+
+                      let html = ' <option value="" disable>Select Exam</option>'
+
+                      if (response.data.length > 0) {
+                        const compltedExams=response.data.filter((exam)=>{
+                          const startTime = new Date(exam.startTime);
+                          const endTime = new Date(startTime.getTime() + exam.duration * 60000);
+                          return endTime<now;
+                        })
+
+                        compltedExams.forEach((exam) => {
+                          html += `<option value="${exam._id}">${exam.title}</option>`;
+                        })
+
+                      }
+                      $('#examId').html(html);
+
+                    }
+                  },
+                  error:function(error){
+                    if (handleAuthRedirect(error)) return;
+                  }
+                })
+
+              })
+
+              $('#absent-filter-form').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                  url: `/admin/absent-students/${$('#batchId').val()}/${$('#examId').val()}`,
+                  type: 'GET',
+                  success: function (response) {
+                    if (response.status) {
+                      console.log(response.data);
+
+
+                      let html = '';
+                      if (response.data.length > 0) {
+                        response.data.forEach((student, index) => {
+
+                          html += `
+                          <tr id='fade-in'>
+                          <td>${index + 1}</td>
+                          <td>${student.name}</td>
+                          <td>${student.email}</td>
+                          <td>${student.phoneNumber}</td>
+                          <td>${student.course.name}</td>
+                          <td>${student.batch.name}</td>
+                        </tr>
+                              `
+                          
+                        })
+
+
+                      } else {
+                        html += `
+                            <tr id='fade-in'>
+                               <td colspan='6' class='text-center'> No Data Found </td>
+                               </tr>
+                             `
+                      }
+
+                      $('#tot-abs-student').text(response.data.length);
+
+                      $('#absent-student-body').html(html);
+                      $('.fade-in').hide().fadeIn(500);
+
+                    }
+                  },
+                  error:function(error){
+                    if (handleAuthRedirect(error)) return;
+                  }
+                })
+              })
+
+              function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/admin/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+
+
+            })
+          </script>
+
+  </body>
+  <!--end::Body-->
+
+  </html>

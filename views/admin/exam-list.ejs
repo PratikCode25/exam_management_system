@@ -1,0 +1,590 @@
+<%- include('../layouts/admin/header') %>
+    <!--begin::Body-->
+
+    <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+        <!--begin::App Wrapper-->
+        <div class="app-wrapper">
+            <%- include('../layouts/admin/navbar-sidebar') %>
+                <!--begin::App Main-->
+                <main class="app-main">
+                    <!--begin::App Content Header-->
+                    <div class="app-content-header">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+                            <!--begin::Row-->
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <h3 class="mb-0">Exams List</h3>
+                                </div>
+                            </div>
+                            <!--end::Row-->
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content Header-->
+                    <!--begin::App Content-->
+                    <div class="app-content">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+
+                            <div class="container">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <select id="filterStatus" class="form-select w-auto">
+                                        <option value="all">All Exams</option>
+                                        <option value="pending">Pending Exams</option>
+                                        <option value="completed">Completed Exams</option>
+                                    </select>
+                                </div>
+
+                                <div class="table-responsive shadow rounded p-3">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Course</th>
+                                                <th>Batch</th>
+                                                <th>Totak Questions</th>
+                                                <th>Added Questions</th>
+                                                <th>Total Marks</th>
+                                                <th>Start Date & Time</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="exam-body">
+
+
+                                        </tbody>
+                                    </table>
+
+                                    <nav class="d-flex justify-content-between align-items-center">
+                                        <div id="page-info" class="text-muted ps-2"></div>
+                                        <div class="flex-grow-1 d-flex justify-content-center">
+                                            <div class="pagination-buttons">
+                                                <button id="prev-btn" class="pagination-btn">Previous</button>
+                                                <button id="next-btn" class="pagination-btn">Next</button>
+                                            </div>
+                                        </div>
+                                    </nav>
+
+                                    <div class="modal fade" id="examDetailModal" tabindex="-1"
+                                        aria-labelledby="examDetailModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="examModalLabel">Exam Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>Title:</strong> <span id="modal-title"></span></p>
+                                                    <p><strong>Duration:</strong> <span id="modal-duration"></span>
+                                                        minutes</p>
+                                                    <p><strong>Negative Marking:</strong> <span
+                                                            id="modal-negative"></span></p>
+                                                    <p><strong>Passing Percentage:</strong> <span
+                                                            id="modal-passing"></span>%</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <div class="modal fade" id="editExamModal" tabindex="-1"
+                                aria-labelledby="editExamModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-xl">
+                                    <form class="modal-content" id="edit-exam-form">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Exam</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div id="messageArea" class="mb-3"></div>
+
+                                            <input type="hidden" id="examId" name="examId">
+
+                                            <div class="mb-3">
+                                                <label for="title" class="form-label required">Title</label>
+                                                <input type="text" class="form-control" id="title" name="title"
+                                                    placeholder="Enter test title">
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="description" class="form-label">Description</label>
+                                                <textarea class="form-control" id="description" name="description"
+                                                    rows="3" placeholder="Enter a short description"></textarea>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="course" class="form-label">Course</label>
+                                                    <select class="form-select" id="courseId" name="courseId" required>
+                                                        <option value="" disabled selected>Choose...</option>
+                                                        <% if(courses.length>0){
+                                                            for(const course of courses){
+                                                            %>
+                                                            <option value="<%=course._id %>">
+                                                                <%=course.name%>
+                                                            </option>
+                                                            <% } } %>
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="course" class="form-label">Batch</label>
+                                                    <div class="dropdown">
+                                                        <div class="custom-multiselect d-flex justify-content-between align-items-center"
+                                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <span id="batchDropdownLabel"
+                                                                class="custom-placeholder">Select batches</span>
+                                                            <i class="bi bi-chevron-down"></i>
+
+                                                        </div>
+                                                        <ul class="dropdown-menu custom-dropdown-menu"
+                                                            id="batchDropdownList">
+                                                            <% if (batches.length> 0) {
+                                                                for (const batch of batches) { %>
+                                                                <li>
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input batch-checkbox"
+                                                                            type="checkbox" value="<%= batch._id %>"
+                                                                            id="batch_<%= batch._id %>" name="batchId">
+                                                                        <label class="form-check-label"
+                                                                            for="batch_<%= batch._id %>">
+                                                                            <%= batch.name %>
+                                                                        </label>
+                                                                    </div>
+                                                                </li>
+                                                                <% } } %>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="duration" class="form-label required">Duration (in
+                                                        minutes)</label>
+                                                    <input type="number" class="form-control" id="duration"
+                                                        name="duration" placeholder="e.g. 60">
+                                                </div>
+
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="startTime" class="form-label required">Start
+                                                        Time</label>
+                                                    <input type="datetime-local" class="form-control" id="startTime"
+                                                        name="startTime">
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-sm-3 mb-3">
+                                                    <label for="questions" class="form-label required">Number of
+                                                        Questions</label>
+                                                    <input type="number" class="form-control" id="totalQuestions"
+                                                        name="totalQuestions" placeholder="e.g. 20">
+                                                </div>
+
+                                                <div class="col-sm-3 mb-3">
+                                                    <label for="marksPerQuestion" class="form-label required">Marks
+                                                        Per Question</label>
+                                                    <input type="number" class="form-control" id="marksPerQuestion"
+                                                        name="marksPerQuestion">
+                                                </div>
+
+                                                <div class="col-sm-3 mb-3">
+                                                    <label for="negativeMarks" class="form-label required">Negative Mark
+                                                        Per Wrong Ans.</label>
+                                                    <input type="number" step="0.01" class="form-control"
+                                                        id="negativeMarkPerWrongAnswer"
+                                                        name="negativeMarkPerWrongAnswer" placeholder="e.g. 0.25">
+                                                </div>
+                                                <div class="col-sm-3 mb-3">
+                                                    <label for="passingPercentage" class="form-label required">Pass
+                                                        Percentage
+                                                    </label>
+                                                    <input type="number" class="form-control" id="passingPercentage"
+                                                        name="passingPercentage">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-success">Save Changes</button>
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+
+
+
+
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content-->
+                </main>
+                <!--end::App Main-->
+
+                <%- include('../layouts/admin/footer') %>
+
+                    <script>
+                        $(document).ready(function () {
+                            let currentPage = 1;
+                            function fetchExams(currentPage) {
+
+                                const filterStatus = $('#filterStatus').val() || 'all';
+                                $.ajax({
+                                    url: '/admin/exams/pagination',
+                                    type: 'GET',
+                                    data: { examStatus: filterStatus, page: currentPage },
+                                    success: function (response) {
+                                        if (response.status) {
+                                            console.log(response);
+
+
+                                            renderExam(response.data);
+                                            setupPagination(response.totalPages, response.page);
+
+                                        }
+                                    },
+                                    error:function(error){
+                                        if (handleAuthRedirect(error)) return;
+                                    }
+
+                                })
+                            }
+
+                            function renderExam(exams) {
+                                $('#exam-body').empty();
+
+                                function showCustomdate(date) {
+                                    const day = String(date.getDate()).padStart(2, '0');
+                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                    const year = date.getFullYear();
+                                    const time = date.toLocaleTimeString();
+                                    return `${day}-${month}-${year}, ${time}`;
+                                }
+
+                                const now = new Date();
+
+                                let html = '';
+                                if (exams.length > 0) {
+                                    exams.forEach((exam) => {
+
+                                        const startTime = new Date(exam.startTime);
+                                        const endTime = new Date(startTime.getTime() + exam.duration * 60000);
+
+                                        let status = '';
+                                        let badgeColor = '';
+                                        if (now < startTime) {
+                                            status = 'Pending';
+                                            badgeColor = 'warning';
+                                        } else if (now >= startTime && now < endTime) {
+                                            status = 'Ongoing';
+                                            badgeColor = 'primary';
+                                        } else {
+                                            status = 'Completed';
+                                            badgeColor = 'success';
+                                        }
+                                        html += `
+                            <tr id="row-${exam._id}">
+                            <td>${exam.title}</td>
+                            <td>${exam.course.name}</td>
+                            <td>${exam.batch.map((val) => val.name).join(',<br>')}</td>
+                            <td>${exam.totalQuestions}</td>
+                            <td><span class="badge bg-${exam.totalQuestions !== exam.questions.length ? 'danger' : 'success'}">${exam.questions.length}</span></td>
+                            <td>${exam.totalQuestions * exam.marksPerQuestion}</td>
+                            <td>${showCustomdate(new Date(exam.startTime))}</td>
+                            <td><span class="badge bg-${badgeColor}">${status}</span></td>
+                            <td class="text-center">
+                                  <div class="d-flex gap-1 flex-wrap">
+                            <button class="btn btn-sm btn-info view-btn" data-bs-toggle="modal" data-bs-target="#examDetailModal" 
+                            data-title="${exam.title}" 
+                            data-negative="${exam.negativeMarkPerWrongAnswer}" 
+                            data-duration="${exam.duration}" 
+                            data-passing="${exam.passingPercentage}">
+                            Detail
+                          </button>
+                            <button class="btn btn-sm btn-warning me-1 edit-btn ${status==='Completed' || status==='Ongoing' ? 'd-none' : ''}" data-exam-id="${exam._id}">Edit</button>
+                            <button class="btn btn-sm btn-danger delete-btn ${status==='Completed' || status==='Ongoing' ? 'd-none' : ''}" data-exam-id="${exam._id}">Delete</button>
+                            </div>
+                        </td>
+                             </tr>   
+                            `
+                                    })
+
+                                } else {
+                                    html += `<tr>
+                                            <td colspan='10' class='text-center'> No Data Found </td>
+                                            </tr>
+                                            `
+                                }
+
+                                $('#exam-body').html(html);
+                                $('.fade-in').hide().fadeIn(500);
+                            }
+
+                            $('#prev-btn').on('click', function () {
+                                if (currentPage > 1) {
+                                    currentPage--;
+                                    fetchExams(currentPage);
+                                }
+                            });
+
+
+                            $('#next-btn').on('click', function () {
+                                currentPage++;
+                                fetchExams(currentPage);
+                            });
+
+                            function setupPagination(totalPages, currentPage) {
+                                $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+
+                                $('#prev-btn').prop('disabled', currentPage === 1);
+                                $('#next-btn').prop('disabled', currentPage === totalPages || totalPages === 0);
+                            }
+
+
+
+                            $('#filterStatus').on('change', function () {
+                                currentPage = 1;
+                                fetchExams(currentPage);
+                            });
+
+                            $(document).on('click', '.edit-btn', function () {
+                                const examId = $(this).data('exam-id');
+                                openEditModal(examId);
+                            });
+
+
+                            $(document).on('click', '.view-btn', function () {
+                                const title = $(this).data('title');
+                                const duration = $(this).data('duration');
+                                const negative = $(this).data('negative');
+                                const passing = $(this).data('passing');
+
+                                $('#modal-title').text(title);
+                                $('#modal-duration').text(duration);
+                                $('#modal-negative').text(negative);
+                                $('#modal-passing').text(passing);
+                            });
+
+                            function openEditModal(id) {
+                                $.ajax({
+                                    url: '/admin/exams/' + id,
+                                    type: 'GET',
+                                    success: function (response) {
+                                        if (response.status) {
+                                            // console.log(response.data);
+                                            const { title, description, course, batch, duration, startTime, totalQuestions, marksPerQuestion, negativeMarkPerWrongAnswer, passingPercentage, _id } = response.data;
+
+                                            $('#examId').val(_id);
+                                            $('#title').val(title);
+                                            $('#description').val(description);
+                                            $('#courseId').val(course._id);
+                                            $('#duration').val(duration);
+                                            $('#startTime').val(formatDateToIST(startTime));
+                                            $('#totalQuestions').val(totalQuestions);
+                                            $('#marksPerQuestion').val(marksPerQuestion);
+                                            $('#negativeMarkPerWrongAnswer').val(negativeMarkPerWrongAnswer);
+                                            $('#passingPercentage').val(passingPercentage);
+
+                                            setbatchBycourse($('#courseId').val(), batch);
+
+                                            const modal = new bootstrap.Modal(document.getElementById('editExamModal'));
+                                            modal.show();
+                                        }
+
+
+                                    },
+                                    error: function (error) {
+                                        if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        alert(errMsg);
+                                    }
+
+                                })
+                            }
+
+                            $('#edit-exam-form').submit(function (e) {
+                                e.preventDefault();
+                                const examId = $('#examId').val();
+                                const formData = {
+                                    title: $('#title').val().trim(),
+                                    description: $('#description').val().trim(),
+                                    course: $('#courseId').val(),
+                                    batch: $('input[name="batchId"]:checked').map(function () {
+                                        return $(this).val();
+                                    }).get(),
+                                    duration: $('#duration').val(),
+                                    startTime: $('#startTime').val(),
+                                    totalQuestions: $('#totalQuestions').val(),
+                                    marksPerQuestion: $('#marksPerQuestion').val(),
+                                    negativeMarkPerWrongAnswer: $('#negativeMarkPerWrongAnswer').val(),
+                                    passingPercentage: $('#passingPercentage').val()
+                                }
+
+                                if (!formData.title || !formData.course || formData.batch.length === 0 || !formData.duration || !formData.startTime || !formData.totalQuestions || !formData.marksPerQuestion || !formData.negativeMarkPerWrongAnswer || !formData.passingPercentage) {
+                                    showMessage('Please fill all the required filed', 'danger');
+                                    return;
+                                }
+
+                                $.ajax({
+                                    url: `/admin/exams/${examId}/update`,
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(formData),
+                                    success: function (response) {
+                                        if (response.status) {
+                                            fetchExams();
+                                            let modalElement = document.getElementById('editExamModal');
+                                            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                                            if (modalInstance) {
+                                                modalInstance.hide();
+                                            }
+                                        }
+                                    },
+                                    error: function (error) {
+                                        if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        showMessage(errMsg, 'danger');
+                                    }
+
+                                })
+
+                            })
+
+                            $(document).on('click', '.delete-btn', function () {
+                                const examId = $(this).data('exam-id');
+                                deleteExam(examId);
+                            });
+
+                            function deleteExam(id) {
+                                const conf = confirm('Are you sure you want to delete this exam?');
+                                if (!conf) {
+                                    return false;
+                                }
+
+                                $.ajax({
+                                    url: `/admin/exams/${id}/delete`,
+                                    type: 'POST',
+                                    success: function (response) {
+                                        if (response.status) {
+                                            $(`#row-${id}`).remove();
+                                        }
+                                    },
+                                    error: function (error) {
+                                        if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        alert(errMsg);
+                                    }
+
+                                })
+                            }
+
+
+                            $('#courseId').change(function () {
+                                const courseId = $(this).val();
+                                setbatchBycourse(courseId);
+                            })
+
+                            function setbatchBycourse(courseId, batch = []) {
+                                if (courseId) {
+                                    $.ajax({
+                                        url: '/admin/batches/filter',
+                                        type: 'GET',
+                                        data: { courseId },
+                                        success: function (response) {
+                                            if (response.status) {
+                                                // console.log(response.data);
+                                                $('#batchDropdownList').empty();
+                                                let html = '';
+                                                if (response.data.length > 0) {
+                                                    for (const batch of response.data) {
+                                                        html += `
+                                                        <li>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input batch-checkbox"
+                                                                type="checkbox" value="${batch._id}"
+                                                                id="batch_${batch._id}" name="batchId">
+                                                                <label class="form-check-label"
+                                                                for="batch_${batch._id}">
+                                                                ${batch.name}
+                                                                </label>
+                                                                </div>
+                                                                </li>`
+                                                    }
+                                                } else {
+                                                    html = `<li class='text-muted'>No batch found</li>`
+                                                }
+
+                                                $('#batchDropdownList').html(html);
+
+                                                $('.batch-checkbox').prop('checked', false);
+                                                batch.forEach((val) => {
+                                                    $(`#batch_${val._id}`).prop('checked', true);
+                                                })
+
+
+                                            }
+                                        },
+                                        error:function(error){
+                                            if (handleAuthRedirect(error)) return;
+                                        }
+                                    })
+                                }
+                            }
+
+                            function showMessage(message, type = 'success') {
+                                $('#messageArea').html(`
+                                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                    ${message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                    `);
+
+                                setTimeout(() => {
+                                    $('.alert').alert('close');
+                                }, 3000);
+
+                            }
+
+
+                            function formatDateToIST(utcDateString) {
+                                const date = new Date(utcDateString);
+                                const istDate = new Date(date.getTime());
+
+                                const year = istDate.getFullYear();
+                                const month = String(istDate.getMonth() + 1).padStart(2, '0');
+                                const day = String(istDate.getDate()).padStart(2, '0');
+                                const hours = String(istDate.getHours()).padStart(2, '0');
+                                const minutes = String(istDate.getMinutes()).padStart(2, '0');
+
+                                return `${year}-${month}-${day}T${hours}:${minutes}`;
+                            }
+
+                            fetchExams(currentPage);
+
+                            function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/admin/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+                        });
+                    </script>
+
+    </body>
+    <!--end::Body-->
+
+    </html>

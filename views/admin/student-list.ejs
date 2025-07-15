@@ -1,0 +1,491 @@
+<%- include('../layouts/admin/header') %>
+    <!--begin::Body-->
+
+    <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+        <!--begin::App Wrapper-->
+        <div class="app-wrapper">
+            <%- include('../layouts/admin/navbar-sidebar') %>
+                <!--begin::App Main-->
+                <main class="app-main">
+                    <!--begin::App Content Header-->
+                    <div class="app-content-header">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+                            <!--begin::Row-->
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <h3 class="mb-0">Student List</h3>
+                                </div>
+
+                            </div>
+                            <!--end::Row-->
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content Header-->
+                    <!--begin::App Content-->
+                    <div class="app-content">
+                        <!--begin::Container-->
+                        <div class="container-fluid">
+
+                            <div class="container">
+
+                                <div class="d-flex justify-content-between mb-4">
+                                    <div class="w-25">
+                                        <input type="text" id="searchByName" name="searchByName"
+                                            class="form-control form-control-sm" placeholder="Search by student name" />
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <select id="courseFilter" class="form-select form-select-sm"
+                                            aria-label="Filter by Course">
+                                            <option value="">All Courses</option>
+                                            <% if(courses.length>0){
+                                                courses.forEach((course) => {
+                                                %>
+                                                <option value="<%=course._id%>">
+                                                    <%=course.name %>
+                                                </option>
+                                                <% }) } %>
+                                        </select>
+                                        <select id="batchFilter" class="form-select form-select-sm"
+                                            aria-label="Filter by Batch">
+                                            <option value="">All Batches</option>
+                                            <% if(batches.length>0){
+                                                batches.forEach((batch) => {
+                                                %>
+                                                <option value="<%=batch._id%>">
+                                                    <%=batch.name %>
+                                                </option>
+                                                <% }) } %>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive shadow rounded p-3">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th>Sl. No</th>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Course</th>
+                                                <th>Batch</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="student-body">
+
+                                        </tbody>
+                                    </table>
+                                    <nav class="d-flex justify-content-between align-items-center">
+                                        <div id="page-info" class="text-muted ps-2"></div>
+                                        <div class="flex-grow-1 d-flex justify-content-center">
+                                            <div class="pagination-buttons">
+                                                <button id="prev-btn" class="pagination-btn">Previous</button>
+                                                <button id="next-btn" class="pagination-btn">Next</button>
+                                            </div>
+                                        </div>
+                                    </nav>
+                                </div>
+
+                                <div class="modal fade" id="editStudentModal" tabindex="-1"
+                                    aria-labelledby="editStudentModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <input type="hidden" id="studentId" name="studentId">
+
+                                        <form class="modal-content" id="edit-student-form">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Edit Student</h5>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div id="messageArea" class="mb-3"></div>
+
+                                                <div class="mb-3">
+                                                    <label for="name" class="form-label required">Name</label>
+                                                    <input type="text" class="form-control" id="name" name="name">
+                                                </div>
+
+
+                                                <div class="mb-3">
+                                                    <label for="email" class="form-label required">Email address</label>
+                                                    <input type="email" class="form-control" id="email" name="email">
+                                                </div>
+
+
+                                                <div class="mb-3">
+                                                    <label for="password" class="form-label required">Password</label>
+                                                    <input type="password" class="form-control" id="password"
+                                                        name="password">
+                                                </div>
+
+
+                                                <div class="mb-3">
+                                                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                                                    <input type="tel" class="form-control" id="phoneNumber"
+                                                        name="phoneNumber">
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label for="course" class="form-label required">Course</label>
+                                                    <select class="form-select" id="courseId" name="courseId">
+                                                        <option selected disabled value="">Select Course</option>
+                                                        <% if(courses.length>0){
+                                                            courses.forEach((course) => {
+                                                            %>
+                                                            <option value="<%=course._id%>">
+                                                                <%=course.name %>
+                                                            </option>
+                                                            <% }) } %>
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label for="batch" class="form-label required">Batch</label>
+                                                    <select class="form-select" id="batchId" name="batchId">
+                                                        <option selected disabled value="">select batch</option>
+                                                        <% if(batches.length>0){
+                                                            batches.forEach((batch) => {
+                                                            %>
+                                                            <option value="<%=batch._id%>">
+                                                                <%=batch.name %>
+                                                            </option>
+                                                            <% }) } %>
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label for="image" class="form-label">Upload Image</label>
+                                                    <input class="form-control" type="file" id="image" name="image">
+                                                </div>
+
+                                                <img id="imagePreview" src="#" alt="Image Preview"
+                                                    style="max-height: 100px; margin-top: 10px;" />
+
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-success">Save Changes</button>
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </form>
+
+
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+
+
+
+                        </div>
+                        <!--end::Container-->
+                    </div>
+                    <!--end::App Content-->
+                </main>
+                <!--end::App Main-->
+
+                <%- include('../layouts/admin/footer') %>
+
+                    <script>
+                        $(document).ready(function () {
+                            let currentPage = 1;
+                            function fetchStudents(currentPage) {
+                                $('#student-body').empty();
+                                const courseFilterId = $('#courseFilter').val();
+                                const batchFilterId = $('#batchFilter').val();
+                                const searchByName = $('#searchByName').val();
+
+                                $.ajax({
+                                    url: '/admin/students/pagination',
+                                    type: 'GET',
+                                    data: {
+                                        page: currentPage,
+                                        courseId: courseFilterId,
+                                        batchId: batchFilterId,
+                                        name: searchByName
+                                    },
+                                    success: function (response) {
+                                        if (response.status) {
+                                            // console.log(response.data);
+
+                                            renderStudents(response.data);
+                                            setupPagination(response.totalPages, response.page)
+                                        }
+                                    },
+                                    error:function(error){
+                                         if (handleAuthRedirect(error)) return;
+                                    }
+                                })
+                            }
+
+                            $('#courseFilter, #batchFilter').on('change', function () {
+                                currentPage = 1;
+                                fetchStudents(currentPage);
+                            })
+
+                            $('#searchByName').on('input', function () {
+                                currentPage = 1;
+                                fetchStudents(currentPage);
+                            })
+
+                            $('#prev-btn').on('click', function () {
+                                if (currentPage > 1) {
+                                    currentPage--;
+                                    fetchStudents(currentPage);
+                                }
+                            });
+
+
+                            $('#next-btn').on('click', function () {
+                                currentPage++;
+                                fetchStudents(currentPage);
+                            });
+
+                            function setupPagination(totalPages, currentPage) {
+                                $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+
+                                $('#prev-btn').prop('disabled', currentPage === 1);
+                                $('#next-btn').prop('disabled', currentPage === totalPages || totalPages === 0);
+                            }
+
+
+                            function renderStudents(data) {
+                                let html = '';
+                                if (data.length > 0) {
+                                    data.forEach((student, index) => {
+                                        html += `
+                                                    <tr class="fade-in" id='row-${student._id}'>
+                                                          <td>${index + 1}</td>
+                                                          <td>${student.name}</td>
+                                                          <td>${student.email}</td>
+                                                          <td>${student.course.name}</td>
+                                                          <td>${student.batch.name}</td>
+                                                          <td class="text-center">
+                                                          <button class="btn btn-sm btn-warning me-1 edit-btn" data-student-id="${student._id}">Edit</button>
+                                                         <button class="btn btn-sm btn-danger delete-btn" data-student-id="${student._id}">Delete</button>
+                                                         </td>
+                                                     </tr>   
+                                                    `
+                                    })
+                                } else {
+                                    html += `
+                                                <tr>
+                                                <td colspan='6' class='text-center'> No Data Found </td>
+                                                </tr>   
+                                                `
+                                }
+                                // $('#batch-body').append(html);
+                                $('#student-body').html(html);
+                                $('.fade-in').hide().fadeIn(500);
+                            }
+
+                            fetchStudents(currentPage);
+
+                            $(document).on('click', '.edit-btn', function () {
+                                const studentId = $(this).data('student-id');
+                                editStudentModal(studentId);
+                            });
+
+                            function editStudentModal(id) {
+                                $.ajax({
+                                    url: '/admin/students/' + id,
+                                    type: 'GET',
+                                    success: function (response) {
+                                        if (response.status) {
+                                            // console.log(response.data);
+                                            const { _id, name, email, password, phoneNumber, courseId, batchId, tempPassword, image } = response.data;
+
+                                            $('#studentId').val(_id);
+                                            $('#name').val(name);
+                                            $('#email').val(email);
+                                            $('#password').val(tempPassword);
+                                            $('#phoneNumber').val(phoneNumber);
+                                            $('#courseId').val(courseId);
+
+                                            setBatchByCourse(courseId,batchId);
+
+                                        
+                                            $('#imagePreview').attr('src', '/' + image)
+
+                                            const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+                                            modal.show();
+                                        }
+
+
+                                    },
+                                    error: function (error) {
+                                         if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        alert(errMsg);
+                                    }
+
+                                })
+                            }
+
+                            $('#edit-student-form').submit(function (e) {
+                                e.preventDefault();
+                                const studentId = $('#studentId').val();
+
+                                // console.log(studentId);
+                                let name = $('#name').val().trim();
+                                let email = $('#email').val().trim();
+                                let password = $('#password').val().trim();
+                                let phone = $('#phoneNumber').val().trim();
+                                let courseId = $('#courseId').val();
+                                let batchId = $('#batchId').val();
+
+                                if (!name || !email || !password || !batchId || !courseId) {
+                                    showMessage('Please fill all required fields', 'success');
+                                    return;
+                                }
+
+                                $('#name').val(name);
+                                $('#email').val(email);
+                                $('#password').val(password);
+                                $('#phoneNumber').val(phone);
+
+                                let formData = new FormData(this);
+
+                                // console.log(formData);
+
+
+                                $.ajax({
+                                    url: `/admin/students/${studentId}/update`,
+                                    type: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function (response) {
+                                        if (response.status) {
+                                            // showMessage(response.message, 'success');
+                                            fetchStudents(currentPage);
+                                            let modalElement = document.getElementById('editStudentModal');
+                                            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                                            if (modalInstance) {
+                                                modalInstance.hide();
+                                            }
+                                        }
+                                    },
+                                    error: function (error) {
+                                         if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        showMessage(errMsg, 'danger');
+                                    }
+
+                                })
+
+
+
+                            })
+
+                            $(document).on('click', '.delete-btn', function () {
+                                const studentId = $(this).data('student-id');
+                                deleteStudent(studentId);
+                            });
+
+                            function deleteStudent(id) {
+                                const conf = confirm('Are you sure you want to delete this student?');
+                                if (!conf) {
+                                    return false;
+                                }
+
+                                // console.log(id);
+
+                                $.ajax({
+                                    url: `/admin/students/${id}/delete`,
+                                    type: 'POST',
+                                    success: function (response) {
+                                        if (response.status) {
+                                            $(`#row-${id}`).remove();
+                                        }
+                                    },
+                                    error: function (error) {
+                                         if (handleAuthRedirect(error)) return;
+                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        alert(errMsg);
+
+                                    }
+
+                                })
+                            }
+
+                            $('#courseId').on('change', function () {
+
+                                setBatchByCourse($('#courseId').val());
+                            })
+
+                            function setBatchByCourse(courseId,slectedBatchId='') {
+                                $.ajax({
+                                    url: '/admin/batches/filter',
+                                    type: 'GET',
+                                    data: { courseId: courseId },
+                                    success: function (response) {
+                                        if (response.status) {
+                                            // console.log(response.data);
+                                            let html = ' <option value="" disabled>Select Exam</option>'
+                                            if (response.data.length > 0) {
+                                                response.data.forEach((batch) => {
+                                                    const selected=batch._id===slectedBatchId?'selected':''
+                                                    html += `<option value="${batch._id}" ${selected}>${batch.name}</option>`;
+                                                })
+                                            }
+                                            $('#batchId').html(html);
+                                        }
+                                    },
+                                    error:function(error){
+                                         if (handleAuthRedirect(error)) return;
+                                    }
+                                })
+                            }
+
+                            $('#image').on('change', function () {
+                                const file = this.files[0];
+                                const preview = $('#imagePreview');
+
+                                if (file) {
+                                    const reader = new FileReader();
+
+                                    reader.onload = function (e) {
+                                        preview.attr('src', e.target.result);
+                                    };
+
+                                    reader.readAsDataURL(file);
+                                }
+                            });
+
+                            function showMessage(message, type = 'success') {
+                                $('#messageArea').html(`
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `);
+                                setTimeout(() => {
+                                    $('.alert').alert('close');
+                                }, 3000);
+
+                            }
+
+                            function handleAuthRedirect(error) {
+                                const response = error.responseJSON;
+                                if (error.status === 401) {
+                                    window.location.href = '/admin/login';
+                                    return true;
+                                }
+                                return false;
+                            }
+
+                        })
+
+                    </script>
+
+
+    </body>
+    <!--end::Body-->
+
+    </html>

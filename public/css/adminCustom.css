@@ -1,0 +1,126 @@
+
+  .required::after {
+    content: " *";
+    color: red;
+  }
+
+  .custom-multiselect {
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.custom-multiselect:focus-within {
+    outline: none;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.custom-dropdown-menu {
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    box-shadow: none;
+}
+
+.custom-dropdown-menu li {
+    padding: 0.25rem 0.5rem;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.custom-placeholder {
+    color: #6c757d;
+}
+
+.stats-card {
+    border-left: 5px solid #0d6efd;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    border-radius: 6px;
+    padding: 1rem;
+  }
+
+  .pagination-buttons {
+    display: inline-flex;
+    border: 1px solid #0d6efd;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.pagination-btn {
+    background-color: #fff;
+    color: #0d6efd;
+    border: none;
+    padding: 6px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #e7f1ff;
+}
+
+.pagination-btn:disabled {
+    color: #aaa;
+    background-color: #f9f9f9;
+    cursor: not-allowed;
+}
+
+.pagination-btn:first-child {
+    border-right: 1px solid #0d6efd;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.pagination-btn:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+  
+
+/* -------dashboard------- */
+
+.card-stats {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.card-stats .icon {
+    font-size: 2rem;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+.card-stats .title {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+.card-stats .value {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.chart-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.chart-container h5 {
+    margin-bottom: 15px;
+}
+
+.chart-height {
+    height: 200px !important; 
+}
