@@ -147,9 +147,9 @@
                                             $('#add-student-form')[0].reset();
                                         }
                                     },
-                                    error: function (error) {
-                                        if (handleAuthRedirect(error)) return;
-                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                    error: function (xhr) {
+                                        if (handleAuthRedirect(xhr)) return;
+                                        const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
                                         showMessage(errMsg, 'danger');
                                     }
 
@@ -174,8 +174,8 @@
                                             $('#batchId').html(html);
                                         }
                                     },
-                                    error: function (error) {
-                                        if (handleAuthRedirect(error)) return;
+                                    error: function (xhr) {
+                                        if (handleAuthRedirect(xhr)) return;
                                     }
                                 })
                             })

@@ -212,8 +212,8 @@
 
                                         }
                                     },
-                                    error:function(error){
-                                         if (handleAuthRedirect(error)) return;
+                                    error:function(xhr){
+                                         if (handleAuthRedirect(xhr)) return;
                                     }
                                 })
                             }
@@ -304,10 +304,16 @@
 
 
                                     },
-                                    error: function (error) {
-                                         if (handleAuthRedirect(error)) return;
-                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
-                                        alert(errMsg);
+                                    error: function (xhr) {
+                                         if (handleAuthRedirect(xhr)) return;
+                                        const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
+                                        
+                                        Swal.fire({
+                                        icon: "error",
+                                        title: "Oops...",
+                                        text: errMsg,
+                                        showConfirmButton: true,
+                                        });
                                     }
 
                                 })
@@ -366,9 +372,9 @@
                                             }
                                         }
                                     },
-                                    error: function (error) {
-                                         if (handleAuthRedirect(error)) return;
-                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                    error: function (xhr) {
+                                         if (handleAuthRedirect(xhr)) return;
+                                        const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
                                         showMessage(errMsg, 'danger');
                                     }
 
@@ -397,10 +403,16 @@
                                             $(`#row-${id}`).remove();
                                         }
                                     },
-                                    error: function (error) {
-                                         if (handleAuthRedirect(error)) return;
-                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
-                                        alert(errMsg);
+                                    error: function (xhr) {
+                                         if (handleAuthRedirect(xhr)) return;
+                                        const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
+                                        
+                                        Swal.fire({
+                                        icon: "error",
+                                        title: "Oops...",
+                                        text: errMsg,
+                                        showConfirmButton: true,
+                                        });
 
                                     }
 

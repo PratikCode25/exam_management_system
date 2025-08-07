@@ -17,7 +17,7 @@ const submitSchema = new mongoose.Schema({
 
 const submissionSchema = new mongoose.Schema({
     studentId:{
-        type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true
+        type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true
     },
     examId: { 
         type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true 

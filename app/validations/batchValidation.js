@@ -8,7 +8,7 @@ const isValidObjectId = (value, helpers) => {
     return value;
 };
 
-const batchSchema = Joi.object({
+const batchValidationSchema = Joi.object({
     name: Joi.string().required().label('Batch name').messages({
         'string.empty': 'Batch name is required',
         'any.required': 'Batch name is required',
@@ -25,4 +25,4 @@ const batchSchema = Joi.object({
         })
 })
 
-module.exports={batchSchema}
+module.exports={batchValidationSchema}

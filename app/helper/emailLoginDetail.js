@@ -1,6 +1,6 @@
 const transporter=require('../config/emailConfig');
 
-const emailLoginDetail=async(req,user)=>{
+const emailLoginDetail=async(req,user,password)=>{
 
  
  const loginLink=`${req.protocol}://${req.get('host')}`+`/student/login`;
@@ -15,7 +15,7 @@ const emailLoginDetail=async(req,user)=>{
     
     This is your login link : ${loginLink}
     Email: ${user.email}
-    Password : ${user.tempPassword}
+    Password : ${password}
     `
   })
 

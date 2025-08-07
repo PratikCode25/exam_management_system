@@ -24,6 +24,7 @@ app.use('/student',studentRoute);
 const port = 3005;
 const start = async () => {
     await connectDB(process.env.MONGO_URI);
+    console.log('Database connected')
     app.listen(port, () => console.log(`Server is running on port ${port}`));
 }
 

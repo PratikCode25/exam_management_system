@@ -1,8 +1,7 @@
-const adminModel = require('../model/admin');
 const examModel = require('../model/exam');
 const courseModel = require('../model/course');
 const batchModel = require('../model/batch');
-const studentModel = require('../model/student');
+const userModel = require('../model/user');
 const questionModel = require('../model/question');
 const submissionModel = require('../model/submission');
 const fs = require('fs').promises;
@@ -10,7 +9,9 @@ const fs = require('fs').promises;
 const { hassPassword, comparePassword } = require('../helper/password');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const { studentValidationSchema,studentUpdateValidationSchema } = require('../validations/studentValidation');
 const {submissionSchema}=require('../validations/submissionValidation');
+const emailLoginDetail = require('../helper/emailLoginDetail');
 
 class StudentController {
     async loginPage(req, res) {
@@ -26,7 +27,7 @@ class StudentController {
                     message: 'Please provide email and password'
                 })
             }
-            const user = await studentModel.findOne({ email });
+            const user = await userModel.findOne({ email,role:'student' });
             if (!user) {
                 return res.status(400).json({
                     status: false,
@@ -45,10 +46,12 @@ class StudentController {
             const payload = {
                 _id: user._id,
                 username: user.name,
+                image:user.image,
+                role:user.role
             }
 
             const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '3h' });
-            res.cookie('student_token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour maxAge
+            res.cookie('student_token', token, { httpOnly: true, maxAge: 3600000*3 }); // 3 hour maxAge
 
             return res.status(200).json({
                 status: true,
@@ -63,10 +66,429 @@ class StudentController {
         }
     }
 
+    async addStudentPage(req, res) {
+            try {
+                const courses = await courseModel.find({}).select('name');
+                const batches = await batchModel.find({}).select('name');
+    
+                res.render('admin/add-student', { title:'Add Student', courses, batches });
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    
+        async addStudent(req, res) {
+            try {
+    
+                const { error } = studentValidationSchema.validate(req.body);
+                if (error) {
+                    console.log(error);
+                    return res.status(400).json({
+                        status: false,
+                        message: error.details[0].message
+                    });
+                }
+    
+                const { name, email, password, phoneNumber, courseId, batchId } = req.body;
+    
+                const existStudent = await userModel.findOne({ email });
+                if (existStudent) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Student already exists'
+                    })
+                }
+    
+                const courseExists = await courseModel.findById(courseId);
+                if (!courseExists) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Course is not found'
+                    })
+                }
+    
+                const batchExists = await batchModel.findById(batchId);
+                if (!batchExists) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Batch is not found'
+                    })
+                }
+    
+                const hassedPassword = await hassPassword(password);
+    
+                const newStudent = new userModel({
+                    name,
+                    email,
+                    phoneNumber,
+                    password: hassedPassword,
+                    role:'student',
+                    courseId,
+                    batchId
+                })
+    
+                if (req.file) {
+                    newStudent.image = req.file.path;
+                }
+    
+                let savedStudent = await newStudent.save();
+    
+                let updateBatch = await batchModel.findByIdAndUpdate(batchId,
+                    { $push: { students: newStudent._id } }
+                )
+    
+                await emailLoginDetail(req, savedStudent,password);
+    
+                return res.status(200).json({
+                    status: true,
+                    message: 'Student has been added successfully'
+                })
+    
+            } catch (error) {
+                console.log(error);
+                res.status(500).json({
+                    status: false,
+                    message: 'Something went wrong'
+                })
+            }
+    
+        }
+    
+        async studentPage(req, res) {
+            try {
+                const courses = await courseModel.find({}).select('name');
+                const batches = await batchModel.find({}).select('name');
+                res.render('admin/student-list', {title:'Student List', courses, batches })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    
+        async getAllStudents(req, res) {
+            try {
+                const filterObj={
+                    role:'student'
+                };
+                const students = await userModel.aggregate([
+                    {
+                        $match: filterObj
+                    },
+                    {
+                        $lookup: {
+                            from: 'courses',
+                            localField: 'courseId',
+                            foreignField: '_id',
+                            as: 'course'
+                        }
+                    },
+                    {
+                        $unwind: '$course'
+                    },
+                    {
+                        $lookup: {
+                            from: 'batches',
+                            localField: 'batchId',
+                            foreignField: '_id',
+                            as: 'batch'
+                        }
+                    },
+                    {
+                        $unwind: '$batch'
+                    },
+                    {
+                        $project: {
+                            name: 1,
+                            email: 1,
+                            image: 1,
+                            course: { _id: '$course._id', name: '$course.name' },
+                            batch: { _id: '$batch._id', name: '$batch.name' }
+                        }
+                    }
+                ])
+    
+    
+                return res.status(200).json({
+                    status: true,
+                    message: "Students has been fetched successfully",
+                    data: students
+                })
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({
+                    status: false,
+                    message: 'Something went wrong'
+                })
+            }
+        }
+    
+        async getFilteredPaginatedStudents(req, res) {
+            try {
+                const { courseId, batchId, name, page = 1, limit = 10 } = req.query;
+                const filterObj = {
+                    role:'student'
+                };
+
+                if (courseId) {
+                    filterObj.courseId = new mongoose.Types.ObjectId(courseId);
+                }
+                if (batchId) {
+                    filterObj.batchId = new mongoose.Types.ObjectId(batchId);
+                }
+                if (name) {
+                    filterObj.name = { $regex: name, $options: "i" }
+                }
+    
+                const skip = (parseInt(page) - 1) * parseInt(limit);
+                const limitVal = parseInt(limit);
+
+                const students = await userModel.aggregate([
+                    {
+                        $match: filterObj
+                    },
+                    {
+                        $lookup: {
+                            from: 'courses',
+                            localField: 'courseId',
+                            foreignField: '_id',
+                            as: 'course'
+                        }
+                    },
+                    {
+                        $unwind: '$course'
+                    },
+                    {
+                        $lookup: {
+                            from: 'batches',
+                            localField: 'batchId',
+                            foreignField: '_id',
+                            as: 'batch'
+                        }
+                    },
+                    {
+                        $unwind: '$batch'
+                    },
+                    { $sort: { createdAt: -1 } },
+                    { $skip: skip },
+                    { $limit: limitVal },
+                    {
+                        $project: {
+                            name: 1,
+                            email: 1,
+                            phoneNumber:1,
+                            image: 1,
+                            course: { _id: '$course._id', name: '$course.name' },
+                            batch: { _id: '$batch._id', name: '$batch.name' }
+                        }
+                    }
+                ])
+    
+    
+                const totalStudents = await userModel.countDocuments(filterObj);
+    
+                return res.status(200).json({
+                    status: true,
+                    message: "Students has been fetched successfully",
+                    data: students,
+                    page: parseInt(page),
+                    totalPages: Math.ceil(totalStudents / limitVal)
+                })
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({
+                    status: false,
+                    message: 'Something went wrong'
+                })
+            }
+        }
+    
+        async getSingleStudent(req, res) {
+            try {
+                const student = await userModel.findById(req.params.id);
+                if (!student) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Student is not found'
+                    })
+                }
+                return res.status(200).json({
+                    status: true,
+                    message: 'Student has fetched successfully',
+                    data: student
+                })
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({
+                    status: false,
+                    message: 'Something went wrong'
+                })
+            }
+        }
+    
+        async updateStudent(req, res) {
+            try {
+                const { error } = studentUpdateValidationSchema.validate(req.body);
+                if (error) {
+                    console.log(error);
+                    return res.status(400).json({
+                        status: false,
+                        message: error.details[0].message
+                    });
+                }
+    
+                const { name, email, password, phoneNumber, courseId, batchId } = req.body;
+                const studentId = req.params.id;
+                const student = await userModel.findById(studentId);
+                if (!student) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Student is not found'
+                    })
+                }
+    
+                const courseExists = await courseModel.findById(courseId);
+                if (!courseExists) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Course is not found'
+                    })
+                }
+    
+                const batchExists = await batchModel.findById(batchId);
+                if (!batchExists) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Batch is not found'
+                    })
+                }
+    
+                let image = req.file ? req.file.path : student.image;
+                
+                const updatedStudent = await userModel.findByIdAndUpdate(studentId, {
+                    name,
+                    email,
+                    phoneNumber,
+                    courseId,
+                    batchId,
+                    image
+                }, { new: true,runValidators:true });
+    
+                if (!updatedStudent) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Student is not found'
+                    })
+                }
+    
+                if (batchId && batchId.toString() !== student.batchId.toString()) {
+                    await batchModel.findByIdAndUpdate(student.batchId,
+                        {
+                            $pull: { students: student._id }
+                        })
+    
+                    await batchModel.findByIdAndUpdate(batchId,
+                        {
+                            $push: { students: student._id }
+                        }
+                    )
+                }
+    
+                if (req.file && student.image) {
+                    try {
+                        await fs.access(student.image)
+                        await fs.unlink(student.image);
+                    } catch (error) {
+                        if (error.code !== 'ENOENT') {
+                            console.error('Error deleting old image:', error);
+                        }
+                    }
+    
+                }
+    
+                return res.status(200).json({
+                    status: true,
+                    message: "Student has been updated successfully",
+                    data: updatedStudent
+                })
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({
+                    status: false,
+                    message: 'Something went wrong'
+                })
+            }
+        }
+    
+        async deleteStudent(req, res) {
+            try {
+                const id = req.params.id;
+                // console.log(id);
+                const student = await userModel.findById(id);
+                if (!student) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Student is not found'
+                    })
+                }
+    
+    
+                const submissions = await submissionModel.find({ studentId: id });
+                if (submissions.length > 0) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Student has taken exam.So can not delete'
+                    });
+                }
+    
+                await batchModel.findByIdAndUpdate(student.batchId, {
+                    $pull: { students: student._id }
+                });
+    
+    
+                const deletedStudent = await userModel.findByIdAndDelete(id);
+    
+                if (!deletedStudent) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Student is not found'
+                    })
+                }
+    
+                await batchModel.findByIdAndUpdate(student.batchId,
+                    {
+                        $pull: { students: student._id }
+                    }
+                )
+    
+                if (student.image) {
+                    try {
+                        await fs.access(student.image);
+                        await fs.unlink(student.image);
+                    } catch (error) {
+                        if (error.code !== 'ENOENT') {
+                            console.error('Error deleting old image:', error);
+                        }
+                    }
+                }
+    
+                return res.status(200).json({
+                    status: true,
+                    message: 'Student data has been deleted successfully',
+                    data: deletedStudent
+                })
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({
+                    status: false,
+                    message: 'Something went wrong'
+                })
+            }
+        }
+
+
     async dashboard(req, res) {
         try {
             const id = req.user._id;
-            const student = await studentModel.aggregate([
+            const student = await userModel.aggregate([
                 {
                     $match: { _id: new mongoose.Types.ObjectId(id) }
                 },
@@ -100,7 +522,7 @@ class StudentController {
 
             ]);
 
-            res.render('dashboard', { studentInfo: student[0] || null });
+            res.render('dashboard', { title:'Dashboard', studentInfo: student[0] || null });
         } catch (error) {
             console.log(error);
         }
@@ -110,7 +532,7 @@ class StudentController {
         try {
             const studentId = req.params.id;
 
-            const student = await studentModel.findById(studentId).select('name courseId batchId');
+            const student = await userModel.findById(studentId).select('name courseId batchId');
             if (!student) {
                 return res.status(400).json({
                     status: false,
@@ -245,7 +667,7 @@ class StudentController {
         try {
             const studentId = req.params.id;
 
-            const student = await studentModel.findById(studentId).select('name courseId batchId');
+            const student = await userModel.findById(studentId).select('name courseId batchId');
             if (!student) {
                 return res.status(400).json({
                     status: false,
@@ -350,7 +772,7 @@ class StudentController {
         try {
             const studentId = req.params.id;
 
-            const student = await studentModel.findById(studentId).select('name courseId batchId');
+            const student = await userModel.findById(studentId).select('name courseId batchId');
             if (!student) {
                 return res.status(400).json({
                     status: false,
@@ -463,7 +885,7 @@ class StudentController {
     async availableExam(req, res) {
         try {
             const id = req.user._id;
-            const student = await studentModel.findById(id);
+            const student = await userModel.findById(id);
             if (!student) {
                 return res.redirect('/student/auth/login');
             }
@@ -481,7 +903,7 @@ class StudentController {
                 }
             }).select('title description course duration startTime');
 
-            return res.render('available-exam', { exams });
+            return res.render('available-exam', { title:'Available Exam', exams });
 
         } catch (error) {
             console.log(error);
@@ -495,7 +917,7 @@ class StudentController {
             return res.redirect('/student/dashboard');
         }
 
-        return res.render('take-exam', { examData: exam, studentId: req.user._id })
+        return res.render('take-exam', { title:'Take Exam', examData: exam, studentId: req.user._id })
 
     }
 
@@ -596,7 +1018,7 @@ class StudentController {
         try {
 
             const id = req.user._id;
-            const student = await studentModel.findById(id);
+            const student = await userModel.findById(id);
             if (!student) {
                 return res.redirect('/student/auth/login');
             }
@@ -633,7 +1055,7 @@ class StudentController {
                 }
             ])
 
-            return res.render('exam-result', { exams, studentId: req.user._id });
+            return res.render('exam-result', { title:'Exam Result', exams, studentId: req.user._id });
         } catch (error) {
             console.log(error);
             return res.status(500).json({
@@ -747,7 +1169,7 @@ class StudentController {
 
             const hassedPassword = await hassPassword(password);
 
-            const updatedStudent = await studentModel.findByIdAndUpdate(studentId,
+            const updatedStudent = await userModel.findByIdAndUpdate(studentId,
                 { $set: { password: hassedPassword } },
                 { new: true,runValidators:true }
             )

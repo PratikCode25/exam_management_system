@@ -205,8 +205,8 @@
 
                                             }
                                         },
-                                        error:function(error){
-                                            if (handleAuthRedirect(error)) return;
+                                        error:function(xhr){
+                                            if (handleAuthRedirect(xhr)) return;
                                         }
                                     })
                                 }
@@ -251,8 +251,8 @@
                                             $('#add-exam-form')[0].reset();
                                         }
                                     },
-                                    error: function (error) {
-                                        if (handleAuthRedirect(error)) return;
+                                    error: function (xhr) {
+                                        if (handleAuthRedirect(xhr)) return;
                                         showMessage('Failed to save exam setup. Please try again', 'danger');
                                     }
 

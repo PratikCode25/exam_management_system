@@ -223,8 +223,8 @@
                   renderQuestionNumbers();
                   // updateNavButtons();
                 },
-                error:function(error){
-                  if (handleAuthRedirect(error)) return;
+                error:function(xhr){
+                  if (handleAuthRedirect(xhr)) return;
                 }
               });
             }
@@ -342,8 +342,8 @@
                   renderQuestionNumbers();
                   $('#save-btn').prop('disabled', true);
                 },
-                error:function(error){
-                  if (handleAuthRedirect(error)) return;
+                error:function(xhr){
+                  if (handleAuthRedirect(xhr)) return;
                 }
               });
 

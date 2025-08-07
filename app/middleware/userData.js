@@ -1,9 +1,9 @@
-const studentModel = require('../model/student');
+const userModel = require('../model/user');
 const adminModel = require('../model/admin');
 
 const studentData=async (req,res,next)=>{
 try {
-    const student=await studentModel.findById(req.user._id);
+    const student=await userModel.findOne({_id:req.user._id,role:'student'});
     if(!student){
         if (req.xhr) {
             return res.status(401).json({ status: false, message: 'Unauthorized access' });

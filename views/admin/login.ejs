@@ -135,8 +135,8 @@ $('#login-form').submit(function(e){
                         
                     }
                 },
-                error: function (error) {
-                            const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                error: function (xhr) {
+                            const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
                             
                             $('#errorMessage').text(errMsg).show();
 

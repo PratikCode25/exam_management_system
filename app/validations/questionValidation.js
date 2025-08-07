@@ -9,7 +9,7 @@ const isValidObjectId = (value, helpers) => {
     return value;
 };
 
-const questionSchema = Joi.object({
+const questionValidationSchema = Joi.object({
     exam: Joi.string().custom(isValidObjectId,'ObjectId validation').required().messages({
         'any.required': 'Exam ID is required',
         'any.invalid': 'Invalid Exam ID',
@@ -42,4 +42,4 @@ const questionSchema = Joi.object({
     })
 });
 
-module.exports={questionSchema};
+module.exports={questionValidationSchema};

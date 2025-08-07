@@ -153,8 +153,8 @@
 
                                         }
                                     },
-                                    error: function (error) {
-                                        if (handleAuthRedirect(error)) return;
+                                    error: function (xhr) {
+                                        if (handleAuthRedirect(xhr)) return;
                                     }
                                 })
                             }
@@ -208,9 +208,9 @@
 
                                             }
                                         },
-                                        error: function (error) {
-                                            if (handleAuthRedirect(error)) return;
-                                            const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        error: function (xhr) {
+                                            if (handleAuthRedirect(xhr)) return;
+                                            const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
                                             showMessage(errMsg, 'danger');
                                         }
 
@@ -231,9 +231,9 @@
 
                                             }
                                         },
-                                        error: function (error) {
-                                            if (handleAuthRedirect(error)) return;
-                                            const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                        error: function (xhr) {
+                                            if (handleAuthRedirect(xhr)) return;
+                                            const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
                                             showMessage(errMsg, 'danger');
                                         }
 
@@ -262,10 +262,16 @@
 
                                         }
                                     },
-                                    error: function (error) {
-                                        if (handleAuthRedirect(error)) return;
-                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
-                                        alert(errMsg);
+                                    error: function (xhr) {
+                                        if (handleAuthRedirect(xhr)) return;
+                                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : "Something went wrong. Please try again later.";
+
+                                            Swal.fire({
+                                            icon: "error",
+                                            title: "Oops...",
+                                            text: errorMsg,
+                                            showConfirmButton: true,
+                                            });
                                     }
                                 })
                             }
@@ -296,10 +302,19 @@
                                             $(`#row-${id}`).remove();
                                         }
                                     },
-                                    error: function (error) {
-                                        if (handleAuthRedirect(error)) return;
-                                        console.log(error);
-                                        alert('Something went wrong, can not delete course');
+                                    error: function (xhr) {
+                                        if (handleAuthRedirect(xhr)) return;
+                                        // console.log(error);
+                                        // alert('Something went wrong, can not delete course');
+
+                                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : "Something went wrong. Please try again later.";
+
+                                            Swal.fire({
+                                            icon: "error",
+                                            title: "Oops...",
+                                            text: errorMsg,
+                                            showConfirmButton: true,
+                                            });
 
                                     }
                                 })

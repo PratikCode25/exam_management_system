@@ -7,7 +7,7 @@ const batchSchema = new mongoose.Schema({
     students: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Student'
+            ref: 'User'
         }
     ]
 }, { timestamps: true })

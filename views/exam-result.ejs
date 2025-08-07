@@ -115,7 +115,14 @@
         function fetchExamResult(){
             const filterExam=$('#filterExam').val();
             const studentId=$('#studentId').val();
-            console.log(filterExam);
+            // console.log(filterExam);
+
+              $('#result-title').text('');
+              $('#score').text('');
+              $('#correct-ans').text('');
+              $('#wrong-ans').text('');
+              $('#un-ans').text('');
+
             $.ajax({
                 url: `/student/exam-result/${studentId}/${filterExam}`,
                 type: 'GET',
@@ -152,8 +159,8 @@
 
                   }
                 },
-                error:function(error){
-                  if (handleAuthRedirect(error)) return;
+                error:function(xhr){
+                  if (handleAuthRedirect(xhr)) return;
                 }
               })
         }

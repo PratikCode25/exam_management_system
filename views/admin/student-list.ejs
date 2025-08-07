@@ -68,6 +68,7 @@
                                                 <th>Sl. No</th>
                                                 <th>Name</th>
                                                 <th>Email</th>
+                                                <th>Phone No</th>
                                                 <th>Course</th>
                                                 <th>Batch</th>
                                                 <th>Action</th>
@@ -112,14 +113,6 @@
                                                     <label for="email" class="form-label required">Email address</label>
                                                     <input type="email" class="form-control" id="email" name="email">
                                                 </div>
-
-
-                                                <div class="mb-3">
-                                                    <label for="password" class="form-label required">Password</label>
-                                                    <input type="password" class="form-control" id="password"
-                                                        name="password">
-                                                </div>
-
 
                                                 <div class="mb-3">
                                                     <label for="phoneNumber" class="form-label">Phone Number</label>
@@ -217,8 +210,8 @@
                                             setupPagination(response.totalPages, response.page)
                                         }
                                     },
-                                    error:function(error){
-                                         if (handleAuthRedirect(error)) return;
+                                    error:function(xhr){
+                                         if (handleAuthRedirect(xhr)) return;
                                     }
                                 })
                             }
@@ -263,6 +256,7 @@
                                                           <td>${index + 1}</td>
                                                           <td>${student.name}</td>
                                                           <td>${student.email}</td>
+                                                          <td>${student.phoneNumber}</td>
                                                           <td>${student.course.name}</td>
                                                           <td>${student.batch.name}</td>
                                                           <td class="text-center">
@@ -298,12 +292,11 @@
                                     success: function (response) {
                                         if (response.status) {
                                             // console.log(response.data);
-                                            const { _id, name, email, password, phoneNumber, courseId, batchId, tempPassword, image } = response.data;
+                                            const { _id, name, email, phoneNumber, courseId, batchId, image } = response.data;
 
                                             $('#studentId').val(_id);
                                             $('#name').val(name);
                                             $('#email').val(email);
-                                            $('#password').val(tempPassword);
                                             $('#phoneNumber').val(phoneNumber);
                                             $('#courseId').val(courseId);
 
@@ -318,10 +311,16 @@
 
 
                                     },
-                                    error: function (error) {
-                                         if (handleAuthRedirect(error)) return;
-                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
-                                        alert(errMsg);
+                                    error: function (xhr) {
+                                         if (handleAuthRedirect(xhr)) return;
+                                        const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
+                                        Swal.fire({
+                                        icon: "error",
+                                        title: "Oops...",
+                                        text: errMsg,
+                                        showConfirmButton: true,
+                                        });
+
                                     }
 
                                 })
@@ -334,19 +333,17 @@
                                 // console.log(studentId);
                                 let name = $('#name').val().trim();
                                 let email = $('#email').val().trim();
-                                let password = $('#password').val().trim();
                                 let phone = $('#phoneNumber').val().trim();
                                 let courseId = $('#courseId').val();
                                 let batchId = $('#batchId').val();
 
-                                if (!name || !email || !password || !batchId || !courseId) {
+                                if (!name || !email  || !batchId || !courseId) {
                                     showMessage('Please fill all required fields', 'success');
                                     return;
                                 }
 
                                 $('#name').val(name);
                                 $('#email').val(email);
-                                $('#password').val(password);
                                 $('#phoneNumber').val(phone);
 
                                 let formData = new FormData(this);
@@ -371,9 +368,9 @@
                                             }
                                         }
                                     },
-                                    error: function (error) {
-                                         if (handleAuthRedirect(error)) return;
-                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
+                                    error: function (xhr) {
+                                         if (handleAuthRedirect(xhr)) return;
+                                        const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
                                         showMessage(errMsg, 'danger');
                                     }
 
@@ -404,10 +401,16 @@
                                             $(`#row-${id}`).remove();
                                         }
                                     },
-                                    error: function (error) {
-                                         if (handleAuthRedirect(error)) return;
-                                        const errMsg = error.responseJSON && error.responseJSON.message ? error.responseJSON.message : 'Something went wrong!';
-                                        alert(errMsg);
+                                    error: function (xhr) {
+                                         if (handleAuthRedirect(xhr)) return;
+                                        const errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong!';
+                                        
+                                        Swal.fire({
+                                        icon: "error",
+                                        title: "Oops...",
+                                        text: errMsg,
+                                        showConfirmButton: true,
+                                        });
 
                                     }
 
@@ -437,8 +440,8 @@
                                             $('#batchId').html(html);
                                         }
                                     },
-                                    error:function(error){
-                                         if (handleAuthRedirect(error)) return;
+                                    error:function(xhr){
+                                         if (handleAuthRedirect(xhr)) return;
                                     }
                                 })
                             }
